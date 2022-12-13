@@ -1,0 +1,1 @@
+requires Python >=3.10
