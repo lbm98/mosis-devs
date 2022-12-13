@@ -1,5 +1,5 @@
 from pypdevs.simulator import Simulator
-from pypdevs.DEVS import AtomicDEVS, CoupledDEVS
+from pypdevs.DEVS import CoupledDEVS
 
 from models.vessels import CrudeOilTanker
 from models.confluence import Confluence, ConfluenceInfoRecord
@@ -27,15 +27,37 @@ CP_CONFLUENCE_INFO = [
 
 
 def generate_vessels(count):
-    vessel = CrudeOilTanker(uid=count)
-    if count == 0:  # leave immediately
-        vessel.destination_dock = "4"  # takes 2 hours
+    # leaves immediately
+    # takes 2 hours
+    # arrives in 2 hours
+    if count == 0:
+        vessel = CrudeOilTanker(uid=0)
+        vessel.destination_dock = "4"
         return vessel
-    elif count == 3600:  # leave after 1 hour
-        vessel.destination_dock = "1"  # takes 1 hour
+
+    # leaves after 0.5 hour
+    # takes 2 hours
+    # arrives in 2.5 hours
+    elif count == 1800:  # leave
+        vessel = CrudeOilTanker(uid=1)
+        vessel.destination_dock = "4"
         return vessel
-    else:
-        return None
+
+    # leaves after 1 hour
+    # takes 1 hour
+    # arrives in 2 hours
+    elif count == 3600:
+        vessel = CrudeOilTanker(uid=2)
+        vessel.destination_dock = "1"
+        return vessel
+
+    # leaves after 1.5 hour
+    # takes 2 hours
+    # arrives in 3.5 hours
+    elif count == 5400:
+        vessel = CrudeOilTanker(uid=3)
+        vessel.destination_dock = "4"
+        return vessel
 
 
 class CoupledConfluence(CoupledDEVS):
@@ -55,16 +77,16 @@ class CoupledConfluence(CoupledDEVS):
 def test_confluence():
     system = CoupledConfluence(name="system")
     sim = Simulator(system)
-    sim.setTerminationTime(7201)  # simulate for 2 hours (plus some leeway to account for FP errors)
+    sim.setTerminationTime(3.5 * 3600 + 1)  # simulate for 3.5 hours (plus some leeway)
     # sim.setVerbose(None)
     sim.setClassicDEVS()
-
     sim.simulate()
 
-    result_1 = system.simple_collector_1.items
-    result_2 = system.simple_collector_2.items
-    print(result_1)
-    print(result_2)
+    vessels_1 = system.simple_collector_1.items
+    vessels_2 = system.simple_collector_2.items
+
+    assert [v.uid for v in vessels_1] == [2]
+    assert [v.uid for v in vessels_2] == [0, 1, 3]
 
 
 if __name__ == "__main__":

@@ -65,12 +65,11 @@ def test_control_tower():
     system = CoupledControlTower(name="system")
     sim = Simulator(system)
     sim.setTerminationTime(10)
-    sim.setVerbose(None)
+    # sim.setVerbose(None)
     sim.setClassicDEVS()
-
     sim.simulate()
+
     result = system.simple_collector.port_entry_permissions
-    print(result)
 
     assert result[0].vessel_uid == 0 and result[0].avl_dock == '1'
     assert result[1].vessel_uid == 1 and result[1].avl_dock == '2'

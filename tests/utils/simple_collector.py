@@ -12,9 +12,9 @@ class SimpleCollector(AtomicDEVS):
 
         # The datastructure to store the collected items
         # Acts as the state
-        self.collection = []
+        self.items = []
 
     def extTransition(self, inputs):
         if self.in_item in inputs:
-            self.collection.append(inputs[self.in_item])
-        return self.collection
+            self.items.append(inputs[self.in_item])
+        return self.items

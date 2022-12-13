@@ -69,13 +69,11 @@ def test_anchor_point():
     system = CoupledAnchorPoint(name="system")
     sim = Simulator(system)
     sim.setTerminationTime(10)
-    sim.setVerbose(None)
+    # sim.setVerbose(None)
     sim.setClassicDEVS()
-
     sim.simulate()
 
     result = system.simple_collector.vessels
-    print(result)
 
     assert result[0].uid == 0 and result[0].destination_dock == '1'
     assert result[1].uid == 1 and result[1].destination_dock == '2'
