@@ -5,67 +5,56 @@ from dataclasses import dataclass
 
 
 @dataclass
-class ConfluenceInfoRecord:
-    distance_in_km: float
-    docks: list[str]
-    port_name: str
-
-
-@dataclass
 class ConfluenceState:
     # The remaining time until generation of a new event
     # Wait INDEFINITELY for the first input event
     remaining_time = INFINITY
 
-    # The datastructure that stores [vessel,timer] pairs
-    vessel_timer_pairs = []
+    # Stores the vessels
+    vessels = []
 
-    # The output port (for the vessel with the smallest timer)
+    # Stores the output port for the next vessel (FCFS)
     output_port_for_next_vessel: Port | None = None
-
-    # The index into vessel_timer_pairs (for the vessel with the smallest timer)
-    timer_pair_index_for_next_vessel: int | None = None
 
 
 class Confluence(AtomicDEVS):
-    def __init__(self, name, confluence_info):
+    """
+    The parameter confluence_info maps:
+        port_name -> list of docks
+    if the next-hop of the vessel is through port_name
+    """
+    def __init__(self, name: str, confluence_info: dict[str, list[str]]):
         super(Confluence, self).__init__(name)
         self.confluence_info = confluence_info
 
-        # Receives Vessel's
-        self.in_vessel = self.addInPort("in_vessel")
+        # num IN ports = num OUT ports
 
-        # Store all the output ports by a name (so we can look up a port by its name)
+        # Receives Vessel's on input ports
+        self.in_vessel_ports = {}
+        for port_name in self.confluence_info:
+            self.in_vessel_ports[port_name] = self.addInPort(port_name)
+
+        # Sends Vessel's on output ports
         self.out_vessel_ports = {}
-        for record in self.confluence_info:
-            self.out_vessel_ports[record.port_name] = self.addOutPort(record.port_name)
+        for port_name in self.confluence_info:
+            self.out_vessel_ports[port_name] = self.addOutPort(port_name)
 
         self.state = ConfluenceState()
 
     def extTransition(self, inputs):
-        if self.in_vessel in inputs:
-            # Get the vessel
-            vessel = inputs[self.in_vessel]
+        for in_vessel_port in self.in_vessel_ports.values():
+            if in_vessel_port in inputs:
+                # Get the vessel
+                vessel = inputs[in_vessel_port]
 
-            # Get the timer
-            # This is the time needed for the vessel to travel to the next "place"
-            # So, we need to consider the vessel's destination
-            distance_in_km = next(
-                record.distance_in_km for record in self.confluence_info
-                if vessel.destination_dock in record.docks
-            )
-            timer = vessel.get_time_in_seconds(distance_in_km)
+                # Enqueue the vessel
+                self.state.vessels.append(vessel)
 
-            # Enqueue the (vessel,timer) pair
-            self.state.vessel_timer_pairs.append([vessel, timer])
+                # Schedule next event to run IMMEDIATELY
+                self.state.remaining_time = 0
 
-            # Apply the pattern: Ignore an Event (see MOSIS)
-            for vessel_timer_pair in self.state.vessel_timer_pairs:
-                vessel_timer_pair[1] -= self.elapsed
-
-            # Schedule next event to run at smallest timer
-            # Necessary, since it could be that the new input event has the smallest timer
-            self.schedule_by_smallest_timer()
+                # Figure out the output port for the next vessel
+                self.set_output_port_for_next_vessel()
 
         return self.state
 
@@ -73,56 +62,35 @@ class Confluence(AtomicDEVS):
         return self.state.remaining_time
 
     def outputFnc(self):
-        # Check preconditions
+        # Check precondition
         assert self.state.output_port_for_next_vessel is not None
-        assert self.state.timer_pair_index_for_next_vessel is not None
 
-        # Send the vessel (for which the timer expired)
-        next_vessel, _ = self.state.vessel_timer_pairs[self.state.timer_pair_index_for_next_vessel]
-        to_return = {self.state.output_port_for_next_vessel: next_vessel}
-
-        return to_return
+        # Send the next vessel (FCFS)
+        return {self.state.output_port_for_next_vessel: self.state.vessels[0]}
 
     def intTransition(self):
+        # Remove the vessel we just sent
+        self.state.vessels.pop(0)
+
         # If there are no more vessels in this confluence,
-        # do nothing
-        if len(self.state.vessel_timer_pairs) == 0:
-            return
+        #   wait INDEFINITELY for the next input event
+        # else
+        #   schedule next event to run IMMEDIATELY, and
+        #   figure out the output port for the next vessel
+        if len(self.state.vessels) == 0:
+            self.state.remaining_time = INFINITY
+        else:
+            self.state.remaining_time = 0
+            self.set_output_port_for_next_vessel()
 
-        # Remove the (vessel,timer) pair from the queue
-        self.state.vessel_timer_pairs.pop(self.state.timer_pair_index_for_next_vessel)
-
-        # Update the timers
-        for vessel_timer_pair in self.state.vessel_timer_pairs:
-            vessel_timer_pair[1] -= self.state.remaining_time
-
-        # Schedule next event to run at smallest timer
-        self.schedule_by_smallest_timer()
         return self.state
 
-    def schedule_by_smallest_timer(self):
-        # If there are no more vessels in this confluence,
-        # wait INDEFINITELY for the next input event
-        if len(self.state.vessel_timer_pairs) == 0:
-            self.state.remaining_time = INFINITY
-            return
+    def set_output_port_for_next_vessel(self):
+        # Assume the next vessel is the first one in the queue (due to FCFS)
+        vessel = self.state.vessels[0]
 
-        # Lookup the smallest time
-        min_index, min_pair = self.state.remaining_time = min(
-            enumerate(self.state.vessel_timer_pairs),
-            key=lambda pair: pair[1][1]  # pair[1] for enumerate, pair[1][1] for timer
-        )
-        vessel, smallest_timer = min_pair
-
-        # Schedule by smallest timer
-        self.state.remaining_time = smallest_timer
-
-        # Store the output port (for the vessel with the smallest timer)
-        port_name = next(
-            record.port_name for record in self.confluence_info
-            if vessel.destination_dock in record.docks
-        )
-        self.state.output_port_for_next_vessel = self.out_vessel_ports[port_name]
-
-        # Store the index of the pair (for the vessel with the smallest timer)
-        self.state.timer_pair_index_for_next_vessel = min_index
+        # Lookup the output port for the next-hop on the route to the vessels destination
+        for port_name, docks in self.confluence_info.items():
+            if vessel.destination_dock in docks:
+                self.state.output_port_for_next_vessel = self.out_vessel_ports[port_name]
+                break
