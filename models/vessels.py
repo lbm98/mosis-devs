@@ -1,6 +1,4 @@
-from models.constants import SECONDS_PER_HOUR
-
-KMH_PER_KNOT = 1.852
+from models.utils.constants import SECONDS_PER_HOUR, KMH_PER_KNOT
 
 
 class Vessel:

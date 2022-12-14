@@ -5,7 +5,7 @@ import random
 import numpy as np
 
 from models.vessels import *
-from models.constants import HOURS_PER_DAY, SECONDS_PER_HOUR
+from models.utils.constants import HOURS_PER_DAY, SECONDS_PER_HOUR
 
 # Average amount of vessels arriving at the port on an hourly basis
 NUM_VESSELS_ARRIVING_PER_HOUR = [100, 120, 150, 175, 125, 50, 42, 68, 200, 220, 250, 245, 253, 236, 227, 246, 203, 43,
