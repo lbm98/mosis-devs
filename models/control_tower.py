@@ -1,7 +1,7 @@
 from pypdevs.DEVS import AtomicDEVS
 from pypdevs.infinity import INFINITY
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from models.messages import PortEntryRequest, PortEntryPermission
 
@@ -11,11 +11,11 @@ class ControlTowerState:
     # The remaining time until generation of a new event
     # We only react to external events
     # Wait INDEFINITELY for the first input
-    remaining_time = INFINITY
+    remaining_time: float = INFINITY
 
-    # The datastruture to keep track of the available docks
+    # The datastructure to keep track of the available docks
     # Initially, all docks are available (set to True)
-    docks = {
+    docks: dict[str, bool] = field(default_factory=lambda: {
         "1": True,
         "2": True,
         "3": True,
@@ -24,16 +24,16 @@ class ControlTowerState:
         "6": True,
         "7": True,
         "8": True,
-    }
+    })
 
     # If all docks are occupied, we enqueue the requests
     # As soon as a dock becomes available, we send a permission to the first-come request
-    port_entry_requests = []
+    port_entry_requests: list[PortEntryRequest] = field(default_factory=list)
 
     # We need to send output, in response to input
     # This is not directly supported in DEVS
     # So, we use these variables
-    stored_port_entry_permission: PortEntryPermission = None
+    stored_port_entry_permission: PortEntryPermission | None = None
 
 
 class ControlTower(AtomicDEVS):

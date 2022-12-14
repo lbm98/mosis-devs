@@ -1,7 +1,7 @@
 from pypdevs.DEVS import AtomicDEVS
 from pypdevs.infinity import INFINITY
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from models.vessels import Vessel
 from models.messages import PortEntryRequest, PortEntryPermission
@@ -12,17 +12,17 @@ class AnchorPointState:
     # The remaining time until generation of a new event
     # We only react to external events
     # Wait INDEFINITELY for the first input
-    remaining_time = INFINITY
+    remaining_time: float = INFINITY
 
     # The datastructure to queue the waiting Vessel's
-    vessels = []
+    vessels: list[Vessel] = field(default_factory=list)
 
     # We need to send output, in response to input
     # This is not directly supported in DEVS
     # So, we use these variables
-    what_to_do = ""
-    stored_port_entry_request: PortEntryRequest = None
-    stored_vessel: Vessel = None
+    what_to_do: str = ""
+    stored_port_entry_request: PortEntryRequest | None = None
+    stored_vessel: Vessel | None = None
 
 
 class AnchorPoint(AtomicDEVS):

@@ -1,17 +1,19 @@
 from pypdevs.DEVS import AtomicDEVS, Port
 from pypdevs.infinity import INFINITY
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+
+from models.vessels import Vessel
 
 
 @dataclass
 class ConfluenceState:
     # The remaining time until generation of a new event
     # Wait INDEFINITELY for the first input event
-    remaining_time = INFINITY
+    remaining_time: float = INFINITY
 
     # Stores the vessels
-    vessels = []
+    vessels: list[Vessel] = field(default_factory=list)
 
     # Stores the output port for the next vessel (FCFS)
     output_port_for_next_vessel: Port | None = None
