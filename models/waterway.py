@@ -8,8 +8,8 @@ from models.vessels import Vessel
 
 @dataclass
 class WaterwayInfo:
-    in_out_vessel_port_1: (str, str)
-    in_out_vessel_port_2: (str, str)
+    in_out_vessel_port_1: tuple[str, str]
+    in_out_vessel_port_2: tuple[str, str]
     distance_in_km: float
 
 
@@ -21,7 +21,7 @@ class VesselRecord:
 
 
 @dataclass
-class ConfluenceState:
+class WaterwayState:
     # The remaining time until generation of a new event
     # Wait INDEFINITELY for the first input event
     remaining_time: float = INFINITY
@@ -33,18 +33,18 @@ class ConfluenceState:
     index_for_next_vessel: int | None = None
 
 
-class Confluence(AtomicDEVS):
+class Waterway(AtomicDEVS):
     def __init__(self, name, waterway_info: WaterwayInfo):
-        super(Confluence, self).__init__(name)
+        super(Waterway, self).__init__(name)
         self.waterway_info = waterway_info
 
         in1, out1 = waterway_info.in_out_vessel_port_1
-        in2, out2 = waterway_info.in_out_vessel_port_1
+        in2, out2 = waterway_info.in_out_vessel_port_2
 
         # Receives Vessel's
         self.in_vessel_ports = {
-            in1: self.addOutPort(in1),
-            in2: self.addOutPort(in2)
+            in1: self.addInPort(in1),
+            in2: self.addInPort(in2)
         }
 
         # Sends Vessel's
@@ -59,9 +59,13 @@ class Confluence(AtomicDEVS):
             in2: out2
         }
 
-        self.state = ConfluenceState()
+        self.state = WaterwayState()
 
     def extTransition(self, inputs):
+        # Apply the pattern: Ignore an Event (see MOSIS)
+        for vessel_record in self.state.vessel_records:
+            vessel_record.timer -= self.elapsed
+
         for in_vessel_port in self.in_vessel_ports.values():
             if in_vessel_port in inputs:
                 # Get the vessel
@@ -80,13 +84,9 @@ class Confluence(AtomicDEVS):
                 # Enqueue the vessel record
                 self.state.vessel_records.append(vessel_record)
 
-                # Apply the pattern: Ignore an Event (see MOSIS)
-                for vessel_record in self.state.vessel_records:
-                    vessel_record.timer -= self.elapsed
-
-                # Schedule next event to run at smallest timer
-                # Necessary, since it could be that the new input event has the smallest timer
-                self.schedule_by_smallest_timer()
+        # Schedule next event to run at smallest timer
+        # Necessary, since it could be that the new input event has the smallest timer
+        self.schedule_by_smallest_timer()
 
         return self.state
 
@@ -98,8 +98,10 @@ class Confluence(AtomicDEVS):
         assert self.state.index_for_next_vessel is not None
 
         # Send the vessel (for which the timer expired)
-        next_vessel = self.state.vessel_records[self.state.index_for_next_vessel]
-        return {next_vessel.out_vessel_port: next_vessel}
+        next_vessel_record = self.state.vessel_records[self.state.index_for_next_vessel]
+        out_vessel_port = self.out_vessel_ports[next_vessel_record.out_vessel_port]
+
+        return {out_vessel_port: next_vessel_record.vessel}
 
     def intTransition(self):
         # Remove the (vessel,timer) pair we just sent
@@ -109,14 +111,14 @@ class Confluence(AtomicDEVS):
         #   wait INDEFINITELY for the next input event
         if len(self.state.vessel_records) == 0:
             self.state.remaining_time = INFINITY
-            return
+        else:
+            # Lower the timers
+            for vessel_record in self.state.vessel_records:
+                vessel_record.timer -= self.state.remaining_time
 
-        # Lower the timers
-        for vessel_record in self.state.vessel_records:
-            vessel_record.timer -= self.state.remaining_time
+            # Schedule next event to run at smallest timer
+            self.schedule_by_smallest_timer()
 
-        # Schedule next event to run at smallest timer
-        self.schedule_by_smallest_timer()
         return self.state
 
     def schedule_by_smallest_timer(self):
@@ -124,14 +126,13 @@ class Confluence(AtomicDEVS):
         assert len(self.state.vessel_records) != 0
 
         # Lookup the smallest time
-        min_index, min_pair = self.state.remaining_time = min(
+        min_index, min_record = self.state.remaining_time = min(
             enumerate(self.state.vessel_records),
-            key=lambda pair: pair[1].timer
+            key=lambda record: record[1].timer
         )
-        min_vessel, min_timer = min_pair
 
         # Schedule by smallest timer
-        self.state.remaining_time = min_timer
+        self.state.remaining_time = min_record.timer
 
         # Store the index of the pair (for the vessel with the smallest timer)
         self.state.index_for_next_vessel = min_index
