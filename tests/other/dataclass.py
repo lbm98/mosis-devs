@@ -22,7 +22,7 @@ class Data2:
         self.lst.append(item)
 
 
-def main():
+def test1():
     x1 = Data1()
     y1 = Data1()
     x1.add(1)
@@ -43,4 +43,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    test1()

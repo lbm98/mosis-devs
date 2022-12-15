@@ -6,4 +6,5 @@ install dependencies
 git clone --depth=1 https://msdl.uantwerpen.be/git/yentl/PythonPDEVS
 
 # Install PythonPDEVS
-For `PythonPDEVS/src`: Mark Directory as Sources Root
+Mark Directory as Sources Root
+- `PythonPDEVS/src`
