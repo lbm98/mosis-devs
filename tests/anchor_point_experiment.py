@@ -66,22 +66,22 @@ class CoupledAnchorPoint(CoupledDEVS):
 def test():
     system = CoupledAnchorPoint(name="system")
     sim = Simulator(system)
-    sim.setTerminationTime(10)  # Simulate long enough
+    sim.setTerminationTime(10)  # Simulate more than long enough
     # sim.setVerbose(None)
     sim.setClassicDEVS()
     sim.simulate()
 
     vessels = system.simple_collector.state.items
 
-    assert [(v.uid, v.time_in_system, v.time_of_arrival, v.destination_dock) for v in vessels] == [
+    assert [(v.uid, v.creation_time, v.time_in_system, v.destination_dock) for v in vessels] == [
         (0, 0, 0, '1'),
-        (1, 0, 1, '2'),
-        (2, 0, 2, '3'),
-        (3, 0, 3, '4'),
-        (4, 0, 4, '5'),
-        (5, 0, 5, '6'),
-        (6, 0, 6, '7'),
-        (7, 0, 7, '8'),
+        (1, 1, 0, '2'),
+        (2, 2, 0, '3'),
+        (3, 3, 0, '4'),
+        (4, 4, 0, '5'),
+        (5, 5, 0, '6'),
+        (6, 6, 0, '7'),
+        (7, 7, 0, '8'),
     ]
 
 

@@ -7,6 +7,12 @@ from models.confluence import Confluence
 
 from utils.simple_collector import SimpleCollector
 
+# This information means:
+#   to reach docks named "1" and "2", go out the port named "port1"
+#   to reach docks named "3" and "4", go out the port named "port2"
+#   ...
+#
+# A port-name identifies an (input,output) port pair
 CONFLUENCE_INFO = {
     "port1": ["1", "2"],
     "port2": ["3", "4"],
@@ -74,22 +80,26 @@ class CoupledConfluence(CoupledDEVS):
 def test():
     system = CoupledConfluence(name="system")
     sim = Simulator(system)
-    sim.setTerminationTime(1)
+    sim.setTerminationTime(0.01)  # Simulate just long enough
     # sim.setVerbose(None)
     sim.setClassicDEVS()
     sim.simulate()
 
-    vessels_1 = system.simple_collector_1.items
-    vessels_2 = system.simple_collector_2.items
-    vessels_3 = system.simple_collector_3.items
+    vessels_1 = system.simple_collector_1.state.items
+    vessels_2 = system.simple_collector_2.state.items
+    vessels_3 = system.simple_collector_3.state.items
 
-    # print([v.uid for v in vessels_1])
-    # print([v.uid for v in vessels_2])
-    # print([v.uid for v in vessels_3])
+    assert [(v.uid, v.creation_time, v.time_in_system) for v in vessels_1] == [
+        (2, 0, 0)
+    ]
 
-    assert [v.uid for v in vessels_1] == [2]
-    assert [v.uid for v in vessels_2] == [0]
-    assert [v.uid for v in vessels_3] == [1]
+    assert [(v.uid, v.creation_time, v.time_in_system) for v in vessels_2] == [
+        (0, 0, 0)
+    ]
+
+    assert [(v.uid, v.creation_time, v.time_in_system) for v in vessels_3] == [
+        (1, 0, 0)
+    ]
 
 
 if __name__ == "__main__":

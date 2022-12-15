@@ -73,16 +73,16 @@ class CoupledUniWaterway(CoupledDEVS):
 def test():
     system = CoupledUniWaterway(name="system")
     sim = Simulator(system)
-    sim.setTerminationTime(3600 + 0.01)  # simulate till last arrival
+    sim.setTerminationTime(3600 + 0.01)  # Simulate just long enough
     # sim.setVerbose(None)
     sim.setClassicDEVS()
     sim.simulate()
 
     vessels = system.simple_collector.state.items
 
-    assert [(v.uid, v.time_in_system) for v in vessels] == [
-        (1, 3210),
-        (0, 3600)
+    assert [(v.uid, v.creation_time, v.time_in_system) for v in vessels] == [
+        (1, 10, 3210),
+        (0, 0, 3600)
     ]
 
 

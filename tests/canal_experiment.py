@@ -2,8 +2,6 @@ from pypdevs.simulator import Simulator
 from pypdevs.DEVS import CoupledDEVS, AtomicDEVS
 from pypdevs.infinity import INFINITY
 
-from dataclasses import dataclass
-
 from models.vessels import CrudeOilTanker, BulkCarrier
 from models.canal import Canal
 
@@ -111,7 +109,7 @@ class CoupledCanal(CoupledDEVS):
 def test():
     system = CoupledCanal(name="system")
     sim = Simulator(system)
-    sim.setTerminationTime(3615 + 0.01)  # simulate just up to the last arrival
+    sim.setTerminationTime(3615 + 0.01)  # Simulate just long enough
     # sim.setVerbose(None)
     sim.setClassicDEVS()
     sim.simulate()
@@ -119,14 +117,14 @@ def test():
     vessels_1 = system.simple_collector_1.state.items
     vessels_2 = system.simple_collector_2.state.items
 
-    assert [(v.uid, v.time_in_system, v.time_of_arrival) for v in vessels_1] == [
-        (0, 3600, 3600),
-        (1, 3600, 3600 + 10)
+    assert [(v.uid, v.creation_time, v.time_in_system) for v in vessels_1] == [
+        (0, 0, 3600),
+        (1, 10, 3600)
     ]
 
-    assert [(v.uid, v.time_in_system, v.time_of_arrival) for v in vessels_2] == [
-        (2, 3600, 3600 + 5),
-        (3, 3600, 3600 + 15)
+    assert [(v.uid, v.creation_time, v.time_in_system) for v in vessels_2] == [
+        (2, 5, 3600),
+        (3, 15, 3600)
     ]
 
 

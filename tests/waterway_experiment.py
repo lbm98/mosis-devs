@@ -29,6 +29,8 @@ class SimpleGenerator1(AtomicDEVS):
         t=0:  CrudeOilTanker(uid=0)
         t=10: BulkCarrier(uid=1)
     from left to right
+
+    The BulkCarrier should overtake the CrudeOilTanker (unlike Canal's)
     """
 
     def __init__(self, name):
@@ -63,6 +65,8 @@ class SimpleGenerator2(AtomicDEVS):
         t=5:  CrudeOilTanker(uid=2)
         t=15: BulkCarrier(uid=3)
     from right to left
+
+    The BulkCarrier should overtake the CrudeOilTanker (unlike Canal's)
     """
 
     def __init__(self, name):
@@ -110,7 +114,7 @@ class CoupledWaterway(CoupledDEVS):
 def test():
     system = CoupledWaterway(name="system")
     sim = Simulator(system)
-    sim.setTerminationTime(3605 + 0.01)  # simulate till last arrival
+    sim.setTerminationTime(3605 + 0.01)  # Simulate just long enough
     # sim.setVerbose(None)
     sim.setClassicDEVS()
     sim.simulate()
@@ -118,14 +122,14 @@ def test():
     vessels_1 = system.simple_collector_1.state.items
     vessels_2 = system.simple_collector_2.state.items
 
-    assert [(v.uid, v.time_in_system) for v in vessels_1] == [
-        (1, 3210),
-        (0, 3600)
+    assert [(v.uid, v.creation_time, v.time_in_system) for v in vessels_1] == [
+        (1, 10, 3210),
+        (0, 0, 3600)
     ]
 
-    assert [(v.uid, v.time_in_system) for v in vessels_2] == [
-        (3, 3210),
-        (2, 3600)
+    assert [(v.uid, v.creation_time, v.time_in_system) for v in vessels_2] == [
+        (3, 15, 3210),
+        (2, 5, 3600)
     ]
 
 

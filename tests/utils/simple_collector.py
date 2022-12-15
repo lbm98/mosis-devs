@@ -2,6 +2,8 @@ from pypdevs.DEVS import AtomicDEVS
 
 from dataclasses import dataclass, field
 
+from models.vessels import Vessel
+
 
 @dataclass
 class CollectorState:
@@ -24,8 +26,9 @@ class SimpleCollector(AtomicDEVS):
 
         assert self.in_item in inputs
         item = inputs[self.in_item]
-        item.time_in_system = self.state.current_time - item.creation_time
-        item.time_of_arrival = self.state.current_time
+
+        if isinstance(item, Vessel):
+            item.time_in_system = self.state.current_time - item.creation_time
 
         self.state.items.append(item)
 

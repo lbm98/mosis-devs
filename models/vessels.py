@@ -6,7 +6,11 @@ class Vessel:
     # The unique identifier for a vessel
     # Set by Generator's
     uid: int
+
     creation_time: float
+    time_in_system: float | None
+
+    # time_of_arrival = time_in_system + creation_time
 
     # The destination of the vessel
     # Set at AnchorPoint and used at Confluence's
@@ -20,6 +24,7 @@ class Vessel:
 
 @dataclass
 class CrudeOilTanker(Vessel):
+    time_in_system: float | None = None
     destination_dock: str | None = None
     vessel_type: str = "Crude Oil Tanker"
     surface_area: int = 11007
@@ -29,6 +34,7 @@ class CrudeOilTanker(Vessel):
 
 @dataclass
 class BulkCarrier(Vessel):
+    time_in_system: float | None = None
     destination_dock: str | None = None
     vessel_type: str = "Bulk Carrier"
     surface_area: int = 5399
@@ -38,6 +44,7 @@ class BulkCarrier(Vessel):
 
 @dataclass
 class TugBoat(Vessel):
+    time_in_system: float | None = None
     destination_dock: str | None = None
     vessel_type: str = "Tug Boat"
     surface_area: int = 348
@@ -47,6 +54,7 @@ class TugBoat(Vessel):
 
 @dataclass
 class SmallCargoFreighter(Vessel):
+    time_in_system: float | None = None
     destination_dock: str | None = None
     vessel_type: str = "Small Cargo Freighter"
     surface_area: int = 1265
