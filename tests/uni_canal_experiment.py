@@ -5,7 +5,7 @@ from pypdevs.infinity import INFINITY
 from dataclasses import dataclass
 
 from models.vessels import CrudeOilTanker, BulkCarrier
-from models.uni_waterway import UniWaterway
+from models.uni_canal import UniCanal
 
 from utils.simple_collector import SimpleCollector
 
@@ -15,7 +15,9 @@ from utils.simple_collector import SimpleCollector
 #
 # The average velocity of a BulkCarrier is 12 knots or 22.224 km/h
 # This takes 0.89166666666 hours or (a little less than) 3210 seconds
-WATERWAY_DISTANCE = 19.8164
+# However, the BulkCarrier will have to slow down to match the CrudeOilTanker's speed.
+# So, it will take 3600 seconds as well
+CANAL_DISTANCE = 19.8164
 
 
 @dataclass
@@ -29,7 +31,7 @@ class SimpleGenerator(AtomicDEVS):
         t=0:  CrudeOilTanker(uid=0)
         t=10: BulkCarrier(uid=1)
 
-    The BulkCarrier should overtake the CrudeOilTanker (unlike Canal's)
+    The BulkCarrier should NOT overtake the CrudeOilTanker (unlike Waterway's)
     """
 
     def __init__(self, name):
@@ -63,26 +65,26 @@ class CoupledUniWaterway(CoupledDEVS):
         super(CoupledUniWaterway, self).__init__(name)
 
         self.simple_generator = self.addSubModel(SimpleGenerator("simple_generator"))
-        self.uni_waterway = self.addSubModel(UniWaterway("uni_waterway", distance_in_km=WATERWAY_DISTANCE))
+        self.uni_canal = self.addSubModel(UniCanal("uni_canal", distance_in_km=CANAL_DISTANCE))
         self.simple_collector = self.addSubModel(SimpleCollector("simple_collector"))
 
-        self.connectPorts(self.simple_generator.out_item, self.uni_waterway.in_vessel)
-        self.connectPorts(self.uni_waterway.out_vessel, self.simple_collector.in_item)
+        self.connectPorts(self.simple_generator.out_item, self.uni_canal.in_vessel)
+        self.connectPorts(self.uni_canal.out_vessel, self.simple_collector.in_item)
 
 
 def test():
     system = CoupledUniWaterway(name="system")
     sim = Simulator(system)
-    sim.setTerminationTime(3600 + 0.01)  # simulate till last arrival
+    sim.setTerminationTime(3610 + 0.01)  # simulate till last arrival
     # sim.setVerbose(None)
     sim.setClassicDEVS()
     sim.simulate()
 
     vessels = system.simple_collector.state.items
 
-    assert [(v.uid, v.time_in_system) for v in vessels] == [
-        (1, 3210),
-        (0, 3600)
+    assert [(v.uid, v.time_in_system, v.time_of_arrival) for v in vessels] == [
+        (0, 3600, 3600),
+        (1, 3600, 3600 + 10)
     ]
 
 

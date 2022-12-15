@@ -78,6 +78,10 @@ class ControlTower(AtomicDEVS):
                 self.state.remaining_time = 0
                 self.state.stored_port_entry_permission = port_entry_permission
 
+        # IF WE RECEIVE A RELEASE
+        # CHECK IF ANY REQUESTS ARE IN THE QUEUE WAITING
+        # IF SO, SERVE THE FIRST-COME REQUEST
+
         return self.state
 
     def timeAdvance(self):

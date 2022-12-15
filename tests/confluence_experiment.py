@@ -1,56 +1,62 @@
 from pypdevs.simulator import Simulator
-from pypdevs.DEVS import CoupledDEVS
+from pypdevs.infinity import INFINITY
+from pypdevs.DEVS import AtomicDEVS, CoupledDEVS
 
 from models.vessels import CrudeOilTanker
 from models.confluence import Confluence
 
 from utils.simple_collector import SimpleCollector
-from utils.simple_generator import SimpleGenerator
 
-
-CP_CONFLUENCE_INFO = {
+CONFLUENCE_INFO = {
     "port1": ["1", "2"],
     "port2": ["3", "4"],
     "port3": ["4", "5"],
 }
 
-
 # Goes from port 1 to 2
-def generate_vessels_1(count):
-    if count == 0:
-        vessel = CrudeOilTanker(uid=0)
-        vessel.destination_dock = "3"
-        return vessel
-
+VESSEL_1 = CrudeOilTanker(uid=0, creation_time=0, destination_dock="3")
 
 # Goes from port 2 to 3
-def generate_vessels_2(count):
-    if count == 0:
-        vessel = CrudeOilTanker(uid=1)
-        vessel.destination_dock = "5"
-        return vessel
-
+VESSEL_2 = CrudeOilTanker(uid=1, creation_time=0, destination_dock="5")
 
 # Goes from port 3 to 1
-def generate_vessels_3(count):
-    if count == 0:
-        vessel = CrudeOilTanker(uid=2)
-        vessel.destination_dock = "1"
-        return vessel
+VESSEL_3 = CrudeOilTanker(uid=2, creation_time=0, destination_dock="1")
+
+
+class SimpleGenerator(AtomicDEVS):
+    """
+    Generates at t=0 the given vessel
+    """
+
+    def __init__(self, name, vessel):
+        AtomicDEVS.__init__(self, name)
+        self.out_item = self.addOutPort("out_item")
+        self.vessel = vessel
+        self.state = 0
+
+    def intTransition(self):
+        self.state += 1
+        return self.state
+
+    def timeAdvance(self):
+        if self.state == 0:
+            return 0
+        else:
+            return INFINITY
+
+    def outputFnc(self):
+        return {self.out_item: self.vessel}
 
 
 class CoupledConfluence(CoupledDEVS):
     def __init__(self, name):
         super(CoupledConfluence, self).__init__(name)
 
-        self.simple_generator_1 = self.addSubModel(
-            SimpleGenerator("simple_generator", item_generator=generate_vessels_1))
-        self.simple_generator_2 = self.addSubModel(
-            SimpleGenerator("simple_generator", item_generator=generate_vessels_2))
-        self.simple_generator_3 = self.addSubModel(
-            SimpleGenerator("simple_generator", item_generator=generate_vessels_3))
+        self.simple_generator_1 = self.addSubModel(SimpleGenerator("simple_generator_1", vessel=VESSEL_1))
+        self.simple_generator_2 = self.addSubModel(SimpleGenerator("simple_generator_2", vessel=VESSEL_2))
+        self.simple_generator_3 = self.addSubModel(SimpleGenerator("simple_generator_3", vessel=VESSEL_3))
 
-        self.confluence = self.addSubModel(Confluence("anchor_point", confluence_info=CP_CONFLUENCE_INFO))
+        self.confluence = self.addSubModel(Confluence("confluence", confluence_info=CONFLUENCE_INFO))
 
         self.simple_collector_1 = self.addSubModel(SimpleCollector("simple_collector_1"))
         self.simple_collector_2 = self.addSubModel(SimpleCollector("simple_collector_2"))
@@ -65,7 +71,7 @@ class CoupledConfluence(CoupledDEVS):
         self.connectPorts(self.confluence.out_vessel_ports["port3"], self.simple_collector_3.in_item)
 
 
-def test_confluence():
+def test():
     system = CoupledConfluence(name="system")
     sim = Simulator(system)
     sim.setTerminationTime(1)
@@ -87,4 +93,4 @@ def test_confluence():
 
 
 if __name__ == "__main__":
-    test_confluence()
+    test()

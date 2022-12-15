@@ -78,7 +78,7 @@ class SimpleGenerator2(AtomicDEVS):
         if self.state.count == 0:
             return 5
         elif self.state.count == 1:
-            return 10
+            return 10   # Note this is not 15, but correctly outputs an event at t=15
         else:
             return INFINITY
 
