@@ -1,110 +1,55 @@
-from pypdevs.DEVS import AtomicDEVS
+from pypdevs.DEVS import CoupledDEVS
 from pypdevs.infinity import INFINITY
 
 from dataclasses import dataclass, field
 
+from models.uni_waterway import UniWaterway
 from models.vessels import Vessel
-from models.utils.math import get_time_in_seconds
 
 
 @dataclass
 class WaterwayState:
-    # The remaining time until generation of a new output event
-    # Initially, do not generate any output events
-    # Instead, we first wait for an input event
+    # The remaining time until generation of a new event
+    # Wait INDEFINITELY for the first input event
     remaining_time: float = INFINITY
 
-    # The list that stores the vessels in this waterway
-    vessels: list[Vessel] = field(default_factory=list)
+    # The list that stores the vessels in this waterway (moving from left to right)
+    vessels_1: list[Vessel] = field(default_factory=list)
 
-    # The list that stores the timers associated with the vessels in vessel_queue
-    # The association is by index
-    timers: list[float] = field(default_factory=list)
+    # The list that stores the vessels in this waterway (moving from right to left)
+    vessels_2: list[Vessel] = field(default_factory=list)
 
-    # The index into vessels for the vessel with the smallest timer
-    index_for_next_vessel: int | None = None
+    # Is either vessels_1 or vessels_2
+    next_vessel_queue: list[Vessel] = field(default_factory=list)
 
 
-class Waterway(AtomicDEVS):
+class Waterway(CoupledDEVS):
+    """
+    in1   +----------------+  out1
+          |    WATERWAY    |
+    out2  +----------------+  in2
+    """
     def __init__(self, name: str, distance_in_km: float):
-        AtomicDEVS.__init__(self, name)
-
-        self.distance_in_km = distance_in_km
+        CoupledDEVS.__init__(self, name)
 
         # Receives Vessel's
-        self.in_vessel = self.addInPort("in_vessel")
+        self.in1 = self.addInPort("in1")
+        self.in2 = self.addInPort("in2")
 
         # Sends Vessel's
-        self.out_vessel = self.addOutPort("out_vessel")
+        self.out1 = self.addOutPort("out1")
+        self.out2 = self.addOutPort("out2")
+
+        self.uni_waterway_1 = self.addSubModel(UniWaterway("uni_waterway_1", distance_in_km=distance_in_km))
+        self.uni_waterway_2 = self.addSubModel(UniWaterway("uni_waterway_2", distance_in_km=distance_in_km))
+
+        # Connect the first direction
+        self.connectPorts(self.in1, self.uni_waterway_1.in_vessel)
+        self.connectPorts(self.uni_waterway_1.out_vessel, self.out1)
+
+        # Connect the other direction
+        self.connectPorts(self.in2, self.uni_waterway_2.in_vessel)
+        self.connectPorts(self.uni_waterway_2.out_vessel, self.out2)
 
         # Initialize the state
         self.state = WaterwayState()
-
-    def extTransition(self, inputs):
-        # Apply the pattern: Ignore an Event (see MOSIS)
-        self.state.timers = [timer - self.elapsed for timer in self.state.timers]
-
-        if self.in_vessel in inputs:
-            # Get the vessel
-            vessel = inputs[self.in_vessel]
-            assert isinstance(vessel, Vessel)
-
-            # Get the timer
-            timer = get_time_in_seconds(
-                distance_in_km=self.distance_in_km,
-                velocity_in_knot=vessel.avg_velocity
-            )
-
-            # Enqueue the vessel and its timer
-            self.state.vessels.append(vessel)
-            self.state.timers.append(timer)
-
-        # Generate the next output event at the smallest timer
-        # Necessary, since it could be that the new vessel leaves the waterway first
-        self.generate_at_smallest_timer()
-
-        return self.state
-
-    def timeAdvance(self):
-        return self.state.remaining_time
-
-    def outputFnc(self):
-        # Check precondition
-        assert self.state.index_for_next_vessel is not None
-
-        # Send the vessel for which the timer expired
-        return {self.out_vessel: self.state.vessels[self.state.index_for_next_vessel]}
-
-    def intTransition(self):
-        # Remove the vessel we just sent (and its timer)
-        self.state.vessels.pop(self.state.index_for_next_vessel)
-        self.state.timers.pop(self.state.index_for_next_vessel)
-
-        # If there are no more vessels in this waterway,
-        # wait INDEFINITELY for the next input event
-        if len(self.state.vessels) == 0:
-            self.state.remaining_time = INFINITY
-        else:
-            # Lower the timers
-            self.state.timers = [timer - self.state.remaining_time for timer in self.state.timers]
-
-            # Generate the next output event at the smallest timer
-            self.generate_at_smallest_timer()
-
-        return self.state
-
-    def generate_at_smallest_timer(self):
-        # Assume that the waterway contains at least one vessel
-        assert len(self.state.vessels) != 0
-
-        # Lookup the smallest timer
-        min_index, min_timer = min(
-            enumerate(self.state.timers),
-            key=lambda p: p[1]
-        )
-
-        # Generate the next output event at the smallest timer
-        self.state.remaining_time = min_timer
-
-        # Store the index of the vessel with the smallest timer
-        self.state.index_for_next_vessel = min_index
