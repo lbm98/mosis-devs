@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from models.vessels import CrudeOilTanker, BulkCarrier
 from models.waterway import Waterway
 
-from utils.simple_collector import SimpleCollector
+from utils.vessel_collector import VesselCollector
 
 # The average velocity of a CrudeOilTanker is 10.7 knots or 19.8164 km/h
 # Set the distance to 19.8164
@@ -102,13 +102,13 @@ class CoupledWaterway(CoupledDEVS):
         self.simple_generator_1 = self.addSubModel(SimpleGenerator1("simple_generator_1"))
         self.simple_generator_2 = self.addSubModel(SimpleGenerator2("simple_generator_2"))
         self.waterway = self.addSubModel(Waterway("waterway", distance_in_km=WATERWAY_DISTANCE))
-        self.simple_collector_1 = self.addSubModel(SimpleCollector("simple_collector_1"))
-        self.simple_collector_2 = self.addSubModel(SimpleCollector("simple_collector_2"))
+        self.vessel_collector_1 = self.addSubModel(VesselCollector("vessel_collector_1"))
+        self.vessel_collector_2 = self.addSubModel(VesselCollector("vessel_collector_2"))
 
         self.connectPorts(self.simple_generator_1.out_item, self.waterway.in1)
         self.connectPorts(self.simple_generator_2.out_item, self.waterway.in2)
-        self.connectPorts(self.waterway.out1, self.simple_collector_1.in_item)
-        self.connectPorts(self.waterway.out2, self.simple_collector_2.in_item)
+        self.connectPorts(self.waterway.out1, self.vessel_collector_1.in_vessel)
+        self.connectPorts(self.waterway.out2, self.vessel_collector_2.in_vessel)
 
 
 def test():
@@ -119,8 +119,8 @@ def test():
     sim.setClassicDEVS()
     sim.simulate()
 
-    vessels_1 = system.simple_collector_1.state.items
-    vessels_2 = system.simple_collector_2.state.items
+    vessels_1 = system.vessel_collector_1.state.vessels
+    vessels_2 = system.vessel_collector_2.state.vessels
 
     assert [(v.uid, v.creation_time, v.time_in_system) for v in vessels_1] == [
         (1, 10, 3210),

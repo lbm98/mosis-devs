@@ -2,19 +2,48 @@ from pypdevs.simulator import Simulator
 from pypdevs.infinity import INFINITY
 from pypdevs.DEVS import AtomicDEVS, CoupledDEVS
 
-from models.messages import PortEntryRequest
+from models.messages import PortEntryRequest, PortEntryPermission
 from models.control_tower import ControlTower
 
-from utils.simple_collector import SimpleCollector
+
+# Dock named "1" has a capacity of 3 vessels
+# Dock named "2" has a capacity of 2 vessels
+# ...
+DOCKS_CAPACITIES = {
+    "1": 3,
+    "2": 2,
+    "3": 1
+}
+
+
+class PermissionCollector(AtomicDEVS):
+    """
+    A simple collector the collects PortEntryPermission's
+    """
+
+    def __init__(self, name):
+        super(PermissionCollector, self).__init__(name)
+        self.in_port_entry_permission = self.addInPort("in_port_entry_permission")
+        self.state = []
+
+    def extTransition(self, inputs):
+        assert self.in_port_entry_permission in inputs
+        port_entry_permission = inputs[self.in_port_entry_permission]
+        assert isinstance(port_entry_permission, PortEntryPermission)
+        self.state.append(port_entry_permission)
+
+        return self.state
 
 
 class SimpleGenerator(AtomicDEVS):
     """
-    Generates
+    Generates 8 vessels
         t=0: PortEntryRequest(vessel_uid=0)
         t=1: PortEntryRequest(vessel_uid=1)
         ...
         t=9: PortEntryRequest(vessel_uid=9)
+
+    Note that it generates more ships than the port can handle (see DOCKS_CAPACITY)
     """
 
     def __init__(self, name):
@@ -43,11 +72,11 @@ class CoupledControlTower(CoupledDEVS):
         super(CoupledControlTower, self).__init__(name)
 
         self.simple_generator = self.addSubModel(SimpleGenerator("simple_generator"))
-        self.control_tower = self.addSubModel(ControlTower("control_tower"))
-        self.simple_collector = self.addSubModel(SimpleCollector("simple_collector"))
+        self.control_tower = self.addSubModel(ControlTower("control_tower", docks_capacities=DOCKS_CAPACITIES))
+        self.permission_collector = self.addSubModel(PermissionCollector("vessel_collector"))
 
         self.connectPorts(self.simple_generator.out_item, self.control_tower.in_port_entry_request)
-        self.connectPorts(self.control_tower.out_port_entry_permission, self.simple_collector.in_item)
+        self.connectPorts(self.control_tower.out_port_entry_permission, self.permission_collector.in_port_entry_permission)
 
 
 def test():
@@ -58,17 +87,17 @@ def test():
     sim.setClassicDEVS()
     sim.simulate()
 
-    permissions = system.simple_collector.state.items
+    permissions = system.permission_collector.state
 
     assert [(p.vessel_uid, p.avl_dock) for p in permissions] == [
         (0, '1'),
-        (1, '2'),
-        (2, '3'),
-        (3, '4'),
-        (4, '5'),
-        (5, '6'),
-        (6, '7'),
-        (7, '8'),
+        (1, '1'),
+        (2, '1'),
+
+        (3, '2'),
+        (4, '2'),
+
+        (5, '3'),
     ]
 
 

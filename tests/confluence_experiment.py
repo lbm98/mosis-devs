@@ -5,7 +5,7 @@ from pypdevs.DEVS import AtomicDEVS, CoupledDEVS
 from models.vessels import CrudeOilTanker
 from models.confluence import Confluence
 
-from utils.simple_collector import SimpleCollector
+from utils.vessel_collector import VesselCollector
 
 # This information means:
 #   to reach docks named "1" and "2", go out the port named "port1"
@@ -64,17 +64,17 @@ class CoupledConfluence(CoupledDEVS):
 
         self.confluence = self.addSubModel(Confluence("confluence", confluence_info=CONFLUENCE_INFO))
 
-        self.simple_collector_1 = self.addSubModel(SimpleCollector("simple_collector_1"))
-        self.simple_collector_2 = self.addSubModel(SimpleCollector("simple_collector_2"))
-        self.simple_collector_3 = self.addSubModel(SimpleCollector("simple_collector_3"))
+        self.vessel_collector_1 = self.addSubModel(VesselCollector("vessel_collector_1"))
+        self.vessel_collector_2 = self.addSubModel(VesselCollector("vessel_collector_2"))
+        self.vessel_collector_3 = self.addSubModel(VesselCollector("vessel_collector_3"))
 
         self.connectPorts(self.simple_generator_1.out_item, self.confluence.in_vessel_ports["port1"])
         self.connectPorts(self.simple_generator_2.out_item, self.confluence.in_vessel_ports["port2"])
         self.connectPorts(self.simple_generator_3.out_item, self.confluence.in_vessel_ports["port3"])
 
-        self.connectPorts(self.confluence.out_vessel_ports["port1"], self.simple_collector_1.in_item)
-        self.connectPorts(self.confluence.out_vessel_ports["port2"], self.simple_collector_2.in_item)
-        self.connectPorts(self.confluence.out_vessel_ports["port3"], self.simple_collector_3.in_item)
+        self.connectPorts(self.confluence.out_vessel_ports["port1"], self.vessel_collector_1.in_vessel)
+        self.connectPorts(self.confluence.out_vessel_ports["port2"], self.vessel_collector_2.in_vessel)
+        self.connectPorts(self.confluence.out_vessel_ports["port3"], self.vessel_collector_3.in_vessel)
 
 
 def test():
@@ -85,9 +85,9 @@ def test():
     sim.setClassicDEVS()
     sim.simulate()
 
-    vessels_1 = system.simple_collector_1.state.items
-    vessels_2 = system.simple_collector_2.state.items
-    vessels_3 = system.simple_collector_3.state.items
+    vessels_1 = system.vessel_collector_1.state.vessels
+    vessels_2 = system.vessel_collector_2.state.vessels
+    vessels_3 = system.vessel_collector_3.state.vessels
 
     assert [(v.uid, v.creation_time, v.time_in_system) for v in vessels_1] == [
         (2, 0, 0)

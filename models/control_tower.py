@@ -8,23 +8,13 @@ from models.messages import PortEntryRequest, PortEntryPermission
 
 @dataclass
 class ControlTowerState:
+    # The datastructure that keeps track of the number of free spots in each dock
+    docks_free_spots: dict[str, int] = field(default_factory=dict)
+
     # The remaining time until generation of a new event
     # We only react to external events
     # Wait INDEFINITELY for the first input
     remaining_time: float = INFINITY
-
-    # The datastructure to keep track of the available docks
-    # Initially, all docks are available (set to True)
-    docks: dict[str, bool] = field(default_factory=lambda: {
-        "1": True,
-        "2": True,
-        "3": True,
-        "4": True,
-        "5": True,
-        "6": True,
-        "7": True,
-        "8": True,
-    })
 
     # If all docks are occupied, we enqueue the requests
     # As soon as a dock becomes available, we send a permission to the first-come request
@@ -37,15 +27,21 @@ class ControlTowerState:
 
 
 class ControlTower(AtomicDEVS):
-    def __init__(self, name):
+    """
+    ControlTower is parameterized by docks_capacities
+    This dictionary describes the names of the docks and their capacities.
+    """
+    def __init__(self, name, docks_capacities: dict[str, int]):
         super(ControlTower, self).__init__(name)
+        self.control_tower_info = docks_capacities
 
         # Receives PortEntryRequest's
         self.in_port_entry_request = self.addInPort("in_port_entry_request")
         # Sends PortEntryPermission's
         self.out_port_entry_permission = self.addOutPort("out_port_entry_permission")
 
-        self.state = ControlTowerState()
+        # Initialize the state
+        self.state = ControlTowerState(docks_free_spots=docks_capacities)
 
     def intTransition(self):
         # After responding to an input, wait INDEFINITELY for a new input
@@ -59,11 +55,12 @@ class ControlTower(AtomicDEVS):
 
             # If all docks are occupied, we enqueue the requests
             # Else, use the first available dock
-            if not any(self.state.docks.values()):
+            if all(num_free_spots == 0 for num_free_spots in self.state.docks_free_spots.values()):
                 self.state.port_entry_requests.append(port_entry_request)
             else:
                 first_avl_dock = next(
-                    (dock for dock in self.state.docks if self.state.docks[dock]), None
+                    (dock for dock in self.state.docks_free_spots if self.state.docks_free_spots[dock] != 0),
+                    None
                 )
                 assert first_avl_dock is not None
                 port_entry_permission = PortEntryPermission(
@@ -71,8 +68,9 @@ class ControlTower(AtomicDEVS):
                     avl_dock=first_avl_dock
                 )
 
-                # Reserve the selected dock
-                self.state.docks[first_avl_dock] = False
+                # Reserve the spot in the dock
+                self.state.docks_free_spots[first_avl_dock] -= 1
+                assert self.state.docks_free_spots[first_avl_dock] >= 0
 
                 # Schedule to send a PortEntryPermission to out_port_entry_permission IMMEDIATELY
                 self.state.remaining_time = 0

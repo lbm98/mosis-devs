@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from models.vessels import CrudeOilTanker, BulkCarrier
 from models.uni_canal import UniCanal
 
-from utils.simple_collector import SimpleCollector
+from utils.vessel_collector import VesselCollector
 
 # The average velocity of a CrudeOilTanker is 10.7 knots or 19.8164 km/h
 # Set the distance to 19.8164
@@ -66,10 +66,10 @@ class CoupledUniWaterway(CoupledDEVS):
 
         self.simple_generator = self.addSubModel(SimpleGenerator("simple_generator"))
         self.uni_canal = self.addSubModel(UniCanal("uni_canal", distance_in_km=CANAL_DISTANCE))
-        self.simple_collector = self.addSubModel(SimpleCollector("simple_collector"))
+        self.vessel_collector = self.addSubModel(VesselCollector("vessel_collector"))
 
         self.connectPorts(self.simple_generator.out_item, self.uni_canal.in_vessel)
-        self.connectPorts(self.uni_canal.out_vessel, self.simple_collector.in_item)
+        self.connectPorts(self.uni_canal.out_vessel, self.vessel_collector.in_vessel)
 
 
 def test():
@@ -80,7 +80,7 @@ def test():
     sim.setClassicDEVS()
     sim.simulate()
 
-    vessels = system.simple_collector.state.items
+    vessels = system.vessel_collector.state.vessels
 
     assert [(v.uid, v.creation_time, v.time_in_system) for v in vessels] == [
         (0, 0, 3600),
