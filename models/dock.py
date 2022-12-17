@@ -2,19 +2,21 @@ from pypdevs.DEVS import AtomicDEVS
 from pypdevs.infinity import INFINITY
 
 from dataclasses import dataclass, field
+import numpy as np
 
 from models.vessels import Vessel
-from models.utils.math import get_time_in_seconds
+from models.messages import PortDepartureRequest
+from models.utils.constants import SECONDS_PER_HOUR
 
 
 @dataclass
-class UniWaterwayState:
+class DockState:
     # The remaining time until generation of a new output event
     # Initially, do not generate any output events
     # Instead, we first wait for an input event
     remaining_time: float = INFINITY
 
-    # The list that stores the vessels in this waterway
+    # The list that stores the vessels in this dock
     vessels: list[Vessel] = field(default_factory=list)
 
     # The list that stores the timers associated with the vessels in vessels
@@ -25,11 +27,20 @@ class UniWaterwayState:
     index_for_next_vessel: int | None = None
 
 
-class UniWaterway(AtomicDEVS):
-    def __init__(self, name: str, distance_in_km: float):
+class Dock(AtomicDEVS):
+    """
+    Dock is parameterized by a name
+
+    Note that:
+    1. The name must be present in the docks_capacities parameter to ControlTower
+    2. There are no checks on the capacity of the docks
+    This is because the ControlTower ensures proper blocking of vessels if the capacity is reached
+    """
+    def __init__(self, name: str):
         AtomicDEVS.__init__(self, name)
 
-        self.distance_in_km = distance_in_km
+        # Note this name has a special purpose (see ControlTower and PortDepartureRequest)
+        self.name = name
 
         # Receives Vessel's
         self.in_vessel = self.addInPort("in_vessel")
@@ -37,8 +48,11 @@ class UniWaterway(AtomicDEVS):
         # Sends Vessel's
         self.out_vessel = self.addOutPort("out_vessel")
 
+        # Sends PortDepartureRequest's
+        self.out_port_departure_request = self.addOutPort("out_port_departure_request")
+
         # Initialize the state
-        self.state = UniWaterwayState()
+        self.state = DockState()
 
     def extTransition(self, inputs):
         # Apply the pattern: Ignore an Event (see MOSIS)
@@ -50,10 +64,13 @@ class UniWaterway(AtomicDEVS):
             assert isinstance(vessel, Vessel)
 
             # Get the timer
-            timer = get_time_in_seconds(
-                distance_in_km=self.distance_in_km,
-                velocity_in_knot=vessel.avg_velocity
-            )
+            # Convert to correct unit = seconds
+            mu = 36 * SECONDS_PER_HOUR
+            sigma = 12 * SECONDS_PER_HOUR
+            # Sample from normal distribution
+            timer = np.random.normal(mu, sigma)
+            # Apply a lower bound of 6 hours
+            timer = max(timer, 6 * SECONDS_PER_HOUR)
 
             # Enqueue the vessel and its timer
             self.state.vessels.append(vessel)
@@ -62,7 +79,7 @@ class UniWaterway(AtomicDEVS):
             assert False
 
         # Generate the next output event at the smallest timer
-        # Necessary, since it could be that the new vessel leaves the waterway first
+        # Necessary, since it could be that the new vessel leaves the dock first
         self.generate_at_smallest_timer()
 
         return self.state
@@ -74,8 +91,15 @@ class UniWaterway(AtomicDEVS):
         # Check precondition
         assert self.state.index_for_next_vessel is not None
 
-        # Send the vessel for which the timer expired
-        return {self.out_vessel: self.state.vessels[self.state.index_for_next_vessel]}
+        # Send the vessel for which the timer expired,
+        # route this vessel to the Sea (by setting destination_dock) and
+        # send a PortDepartureRequest
+        vessel = self.state.vessels[self.state.index_for_next_vessel]
+        vessel.destination_dock = "S"
+        return {
+            self.out_vessel: vessel,
+            self.out_port_departure_request: PortDepartureRequest(dock=self.name)
+        }
 
     def intTransition(self):
         # Remove the vessel we just sent (and its timer)
@@ -96,7 +120,7 @@ class UniWaterway(AtomicDEVS):
         return self.state
 
     def generate_at_smallest_timer(self):
-        # Assume that the waterway contains at least one vessel
+        # Assume that the dock contains at least one vessel
         assert len(self.state.vessels) != 0
 
         # Lookup the smallest timer

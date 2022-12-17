@@ -10,3 +10,8 @@ class PortEntryRequest:
 class PortEntryPermission:
     vessel_uid: int
     avl_dock: str
+
+
+@dataclass
+class PortDepartureRequest:
+    dock: str
