@@ -1,0 +1,18 @@
+from pypdevs.DEVS import CoupledDEVS, AtomicDEVS
+
+{% for import in imports %}
+from drawio.models.{{ import.filename }} import {{ import.class_name }}
+{% endfor %}
+
+
+class CoupledCanal(CoupledDEVS):
+    def __init__(self, name):
+        CoupledDEVS.__init__(self, name)
+
+        {% for model in models %}
+        self.{{ model.name }} = self.addSubModel({{ model.class_name }}("{{ model.name }}"))
+        {% endfor %}
+
+        {% for conn in connections %}
+        self.connectPorts(self.{{conn.source.model_name}}.{{conn.source.port_name}}, self.{{conn.target.model_name}}.{{conn.target.port_name}})
+        {% endfor %}

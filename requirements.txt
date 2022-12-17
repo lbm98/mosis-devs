@@ -1,2 +1,4 @@
 numpy
 matplotlib
+jinja2
+inflection

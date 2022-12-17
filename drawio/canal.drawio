@@ -1,10 +1,10 @@
-<mxfile host="Electron" modified="2022-12-17T11:51:02.200Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/20.6.2 Chrome/106.0.5249.199 Electron/21.3.3 Safari/537.36" etag="ayda5QlnICHzNyqpUK7u" compressed="false" version="20.6.2" type="device">
+<mxfile host="Electron" modified="2022-12-17T20:12:32.914Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/20.6.2 Chrome/106.0.5249.199 Electron/21.3.3 Safari/537.36" etag="zys5Qpr8MRVhkfc60lrg" compressed="false" version="20.6.2" type="device">
   <diagram id="5l4s-eWboWw9r9d8RjVL" name="Page-1">
-    <mxGraphModel dx="677" dy="401" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1406" dy="609" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <object label="CANAL" class_name="Canal" distance_in_km="19.8164" id="znr6a2Gjy-qV1W-hzOHf-23">
+        <object label="CANAL" class_name="Canal" distance_in_km="19.8164" name="canal" id="znr6a2Gjy-qV1W-hzOHf-23">
           <mxCell style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;connectable=0;rotatable=1;resizable=0;metaEdit=1;rotation=0;" parent="1" vertex="1">
             <mxGeometry x="280" y="160" width="120" height="60" as="geometry" />
           </mxCell>
@@ -20,57 +20,65 @@
           </mxCell>
         </object>
         <object label="" name="out1" id="Gu0uO0iWaw8z0V1XDLS5-27">
-          <mxCell style="triangle;whiteSpace=wrap;html=1;fillColor=#000000;rotation=0;allowArrows=0;points=[[1,0.53,0,0,0]];resizable=0;rotatable=1;direction=west;" vertex="1" parent="znr6a2Gjy-qV1W-hzOHf-23">
+          <mxCell style="triangle;whiteSpace=wrap;html=1;fillColor=#000000;rotation=0;allowArrows=0;points=[[1,0.53,0,0,0]];resizable=0;rotatable=1;direction=west;" parent="znr6a2Gjy-qV1W-hzOHf-23" vertex="1">
             <mxGeometry y="35" width="10" height="15" as="geometry" />
           </mxCell>
         </object>
         <object label="" name="in1" id="Gu0uO0iWaw8z0V1XDLS5-28">
-          <mxCell style="triangle;whiteSpace=wrap;html=1;fillColor=#FFFFFF;rotation=-180;allowArrows=0;points=[[0,0.53,0,0,0]];resizable=0;rotatable=1;" vertex="1" parent="znr6a2Gjy-qV1W-hzOHf-23">
+          <mxCell style="triangle;whiteSpace=wrap;html=1;fillColor=#FFFFFF;rotation=-180;allowArrows=0;points=[[0,0.53,0,0,0]];resizable=0;rotatable=1;" parent="znr6a2Gjy-qV1W-hzOHf-23" vertex="1">
             <mxGeometry x="110" y="35" width="10" height="15" as="geometry" />
           </mxCell>
         </object>
-        <object label="GEN" class_name="SlowVesselFastVesselGenerator" id="znr6a2Gjy-qV1W-hzOHf-28">
+        <object label="GEN" class_name="VesselGenerator" name="gen1" id="znr6a2Gjy-qV1W-hzOHf-28">
           <mxCell style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;connectable=0;resizable=0;rotatable=0;metaEdit=1;" parent="1" vertex="1">
             <mxGeometry x="180" y="125" width="60" height="60" as="geometry" />
           </mxCell>
         </object>
-        <mxCell id="znr6a2Gjy-qV1W-hzOHf-29" value="" style="triangle;whiteSpace=wrap;html=1;fillColor=#000000;rotation=0;allowArrows=0;points=[[1,0.53,0,0,0]];resizable=0;rotatable=0;" parent="znr6a2Gjy-qV1W-hzOHf-28" vertex="1">
-          <mxGeometry x="50" y="22.5" width="10" height="15" as="geometry" />
-        </mxCell>
-        <object label="COL" class_name="VesselCollector" id="znr6a2Gjy-qV1W-hzOHf-32">
+        <object label="" name="out_vessel" id="znr6a2Gjy-qV1W-hzOHf-29">
+          <mxCell style="triangle;whiteSpace=wrap;html=1;fillColor=#000000;rotation=0;allowArrows=0;points=[[1,0.53,0,0,0]];resizable=0;rotatable=0;metaEdit=1;" parent="znr6a2Gjy-qV1W-hzOHf-28" vertex="1">
+            <mxGeometry x="50" y="22.5" width="10" height="15" as="geometry" />
+          </mxCell>
+        </object>
+        <object label="COL" class_name="VesselCollector" name="col2" id="znr6a2Gjy-qV1W-hzOHf-32">
           <mxCell style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;connectable=0;resizable=0;rotatable=0;metaEdit=1;" parent="1" vertex="1">
             <mxGeometry x="440" y="120" width="60" height="60" as="geometry" />
           </mxCell>
         </object>
-        <mxCell id="znr6a2Gjy-qV1W-hzOHf-33" value="" style="triangle;whiteSpace=wrap;html=1;fillColor=#FFFFFF;rotation=0;allowArrows=0;points=[[0,0.53,0,0,0]];resizable=0;rotatable=0;" parent="znr6a2Gjy-qV1W-hzOHf-32" vertex="1">
-          <mxGeometry y="22.5" width="10" height="15" as="geometry" />
-        </mxCell>
-        <object label="COL" class_name="VesselCollector" id="Gu0uO0iWaw8z0V1XDLS5-15">
-          <mxCell style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;connectable=0;resizable=0;rotatable=0;metaEdit=1;" vertex="1" parent="1">
+        <object label="" name="in_vessel" id="znr6a2Gjy-qV1W-hzOHf-33">
+          <mxCell style="triangle;whiteSpace=wrap;html=1;fillColor=#FFFFFF;rotation=0;allowArrows=0;points=[[0,0.53,0,0,0]];resizable=0;rotatable=0;metaEdit=1;" parent="znr6a2Gjy-qV1W-hzOHf-32" vertex="1">
+            <mxGeometry y="22.5" width="10" height="15" as="geometry" />
+          </mxCell>
+        </object>
+        <object label="COL" class_name="VesselCollector" name="col1" id="Gu0uO0iWaw8z0V1XDLS5-15">
+          <mxCell style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;connectable=0;resizable=0;rotatable=0;metaEdit=1;" parent="1" vertex="1">
             <mxGeometry x="180" y="200" width="60" height="60" as="geometry" />
           </mxCell>
         </object>
-        <mxCell id="Gu0uO0iWaw8z0V1XDLS5-16" value="" style="triangle;whiteSpace=wrap;html=1;fillColor=#FFFFFF;rotation=0;allowArrows=0;points=[[0,0.53,0,0,0]];resizable=0;rotatable=1;direction=west;" vertex="1" parent="Gu0uO0iWaw8z0V1XDLS5-15">
-          <mxGeometry x="50" y="22.5" width="10" height="15" as="geometry" />
-        </mxCell>
-        <mxCell id="Gu0uO0iWaw8z0V1XDLS5-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.53;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.53;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="znr6a2Gjy-qV1W-hzOHf-29" target="znr6a2Gjy-qV1W-hzOHf-26">
+        <object label="" name="in_vessel" id="Gu0uO0iWaw8z0V1XDLS5-16">
+          <mxCell style="triangle;whiteSpace=wrap;html=1;fillColor=#FFFFFF;rotation=0;allowArrows=0;points=[[0,0.53,0,0,0]];resizable=0;rotatable=1;direction=west;metaEdit=1;" parent="Gu0uO0iWaw8z0V1XDLS5-15" vertex="1">
+            <mxGeometry x="50" y="22.5" width="10" height="15" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="Gu0uO0iWaw8z0V1XDLS5-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.53;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.53;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="znr6a2Gjy-qV1W-hzOHf-29" target="znr6a2Gjy-qV1W-hzOHf-26" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="Gu0uO0iWaw8z0V1XDLS5-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.53;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.53;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="znr6a2Gjy-qV1W-hzOHf-24" target="znr6a2Gjy-qV1W-hzOHf-33">
+        <mxCell id="Gu0uO0iWaw8z0V1XDLS5-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.53;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.53;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="znr6a2Gjy-qV1W-hzOHf-24" target="znr6a2Gjy-qV1W-hzOHf-33" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="Gu0uO0iWaw8z0V1XDLS5-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.53;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.53;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="Gu0uO0iWaw8z0V1XDLS5-27" target="Gu0uO0iWaw8z0V1XDLS5-16">
+        <mxCell id="Gu0uO0iWaw8z0V1XDLS5-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.53;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.53;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="Gu0uO0iWaw8z0V1XDLS5-27" target="Gu0uO0iWaw8z0V1XDLS5-16" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <object label="GEN" class_name="SlowVesselFastVesselGenerator" id="Gu0uO0iWaw8z0V1XDLS5-30">
-          <mxCell style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;connectable=0;resizable=0;rotatable=0;metaEdit=1;" vertex="1" parent="1">
+        <object label="GEN" class_name="VesselGenerator" name="gen2" id="Gu0uO0iWaw8z0V1XDLS5-30">
+          <mxCell style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;connectable=0;resizable=0;rotatable=0;metaEdit=1;" parent="1" vertex="1">
             <mxGeometry x="440" y="200" width="60" height="60" as="geometry" />
           </mxCell>
         </object>
-        <mxCell id="Gu0uO0iWaw8z0V1XDLS5-31" value="" style="triangle;whiteSpace=wrap;html=1;fillColor=#000000;rotation=-180;allowArrows=0;points=[[1,0.53,0,0,0]];resizable=0;rotatable=1;" vertex="1" parent="Gu0uO0iWaw8z0V1XDLS5-30">
-          <mxGeometry y="22.5" width="10" height="15" as="geometry" />
-        </mxCell>
-        <mxCell id="Gu0uO0iWaw8z0V1XDLS5-32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.53;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.53;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="Gu0uO0iWaw8z0V1XDLS5-31" target="Gu0uO0iWaw8z0V1XDLS5-28">
+        <object label="" name="out_vessel" id="Gu0uO0iWaw8z0V1XDLS5-31">
+          <mxCell style="triangle;whiteSpace=wrap;html=1;fillColor=#000000;rotation=-180;allowArrows=0;points=[[1,0.53,0,0,0]];resizable=0;rotatable=1;metaEdit=1;" parent="Gu0uO0iWaw8z0V1XDLS5-30" vertex="1">
+            <mxGeometry y="22.5" width="10" height="15" as="geometry" />
+          </mxCell>
+        </object>
+        <mxCell id="Gu0uO0iWaw8z0V1XDLS5-32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.53;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.53;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="Gu0uO0iWaw8z0V1XDLS5-31" target="Gu0uO0iWaw8z0V1XDLS5-28" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
