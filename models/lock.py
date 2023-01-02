@@ -116,7 +116,8 @@ class Lock(AtomicDEVS):
             # This reset can be done anywhere after outputting and inputting the vessels
             self.state.current_surface_area = self.surface_area
             self.state.remaining_lock_shift_interval = self.lock_shift_interval
-            return IntervalState.WASHING
+            self.state.interval_state = IntervalState.WASHING
+            return self.state
         elif self.state.interval_state == IntervalState.WASHING:
             if self.state.current_water_level == WaterLevel.HIGH:
                 self.state.current_water_level = WaterLevel.LOW
@@ -124,14 +125,18 @@ class Lock(AtomicDEVS):
                 self.state.current_water_level = WaterLevel.HIGH
             else:
                 assert False
-            return IntervalState.GATE_OPENING
+            self.state.interval_state = IntervalState.GATE_OPENING
+            return self.state
         elif self.state.interval_state == IntervalState.GATE_OPENING:
-            return IntervalState.GATE_IS_OPEN
+            self.state.interval_state = IntervalState.GATE_IS_OPEN
+            return self.state
         elif self.state.interval_state == IntervalState.GATE_IS_OPEN:
             if len(self.state.vessels_in_lock) != 0:
                 self.state.vessels_in_lock.pop(0)
-                return IntervalState.GATE_IS_OPEN
-            return IntervalState.GATE_CLOSING
+                self.state.interval_state = IntervalState.GATE_IS_OPEN
+                return self.state
+            self.state.interval_state = IntervalState.GATE_CLOSING
+            return self.state
         else:
             assert False
 
