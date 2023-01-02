@@ -57,11 +57,17 @@ def test():
     system = CoupledLock(name="system")
     sim = Simulator(system)
     sim.setTerminationTime(3610 + 0.01)  # Simulate just long enough
-    # sim.setVerbose(None)
+    sim.setVerbose(None)
     sim.setClassicDEVS()
     sim.simulate()
 
     vessels = system.simple_collector.state.vessels
+
+    print([(v.uid, v.creation_time, v.time_in_system) for v in vessels])
+
+    # assert [(v.uid, v.creation_time, v.time_in_system) for v in vessels] == [
+    #     (0, 0, 4),
+    # ]
 
 if __name__ == "__main__":
     test()

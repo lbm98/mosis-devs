@@ -131,6 +131,21 @@ class Lock(AtomicDEVS):
             self.state.interval_state = IntervalState.GATE_IS_OPEN
             return self.state
         elif self.state.interval_state == IntervalState.GATE_IS_OPEN:
+
+            if self.state.current_water_level == WaterLevel.HIGH:
+                for idx, vessel in enumerate(self.state.vessels_waiting_high):
+                    if self.state.current_surface_area - vessel.surface_area >= 0:
+                        self.state.vessels_in_lock.append(vessel)
+                        self.state.current_surface_area -= vessel.surface_area
+                        self.state.vessels_waiting_high.pop(idx)
+
+            elif self.state.current_water_level == WaterLevel.LOW:
+                for idx, vessel in enumerate(self.state.vessels_waiting_low):
+                    if self.state.current_surface_area - vessel.surface_area >= 0:
+                        self.state.vessels_in_lock.append(vessel)
+                        self.state.current_surface_area -= vessel.surface_area
+                        self.state.vessels_waiting_low.pop(idx)
+
             if len(self.state.vessels_in_lock) != 0:
                 self.state.vessels_in_lock.pop(0)
                 self.state.interval_state = IntervalState.GATE_IS_OPEN
