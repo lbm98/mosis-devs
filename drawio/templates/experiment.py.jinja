@@ -1,18 +1,32 @@
-from pypdevs.DEVS import CoupledDEVS, AtomicDEVS
+from pypdevs.simulator import Simulator
+from pypdevs.DEVS import CoupledDEVS
 
 {% for import in imports %}
 from drawio.models.{{ import.filename }} import {{ import.class_name }}
 {% endfor %}
 
 
-class CoupledCanal(CoupledDEVS):
+class CoupledSystem(CoupledDEVS):
     def __init__(self, name):
         CoupledDEVS.__init__(self, name)
 
         {% for model in models %}
-        self.{{ model.name }} = self.addSubModel({{ model.class_name }}("{{ model.name }}"))
+        self.{{ model.name }} = self.addSubModel({{ model.class_name }}("{{ model.name }}"{{ model.parameters }}))
         {% endfor %}
 
         {% for conn in connections %}
-        self.connectPorts(self.{{conn.source.model_name}}.{{conn.source.port_name}}, self.{{conn.target.model_name}}.{{conn.target.port_name}})
+        self.connectPorts(self.{{ conn.source.model_name }}.{{ conn.source.port_name }}, self.{{ conn.target.model_name }}.{{ conn.target.port_name }})
         {% endfor %}
+
+
+def simulate():
+    system = CoupledSystem(name="system")
+    sim = Simulator(system)
+    sim.setTerminationTime(3615 + 0.01)  # Simulate just long enough
+    # sim.setVerbose(None)
+    sim.setClassicDEVS()
+    sim.simulate()
+
+
+if __name__ == "__main__":
+    simulate()

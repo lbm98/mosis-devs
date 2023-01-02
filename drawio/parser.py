@@ -14,6 +14,7 @@ class FQPort:
 class Model:
     name: str
     class_name: str
+    parameters: str
 
 
 @dataclass
@@ -31,9 +32,12 @@ class Import:
 class Parser:
     def __init__(self, filename):
         self.filename = filename
+
         self.models: list[Model] = []
         self.connections: list[Connection] = []
         self.imports: list[Import] = []
+
+        self.params_to_ignore = ['id', 'label', 'name', 'class_name']
 
     def parse(self):
         tree = ET.parse(self.filename)
@@ -45,9 +49,17 @@ class Parser:
         # Parse models (they all have parent='1')
         models = root.findall(".//object/mxCell[@parent='1']/..")
         for model in models:
+
+            # Get parameters
+            parameters = ""
+            for param, value in model.attrib.items():
+                if param not in self.params_to_ignore:
+                    parameters += f", {param}={value}"
+
             self.models.append(Model(
                 name=model.attrib['name'],
-                class_name=model.attrib['class_name']
+                class_name=model.attrib['class_name'],
+                parameters=parameters
             ))
 
             # Parse ports (of a model)
