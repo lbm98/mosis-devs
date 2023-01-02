@@ -50,6 +50,9 @@ class Lock(AtomicDEVS):
 
     We assume that the amount of time it takes for all the vessels to leave the lock is never longer than the
     shift_interval_time - (2*gate_duration + washing_duration)
+
+    We also assume that even only one vessel is departing the lock, it takes 30 seconds -> coming from
+    it takes 30 seconds inbetween when multiple vessels leaving the lock
     """
     def __init__(self, name: str, washing_duration: int, lock_shift_interval: int, gate_duration: int, surface_area: int,
                  time_between_departures: int=30):

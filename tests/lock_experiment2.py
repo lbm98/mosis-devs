@@ -38,6 +38,8 @@ class SimpleGenerator(AtomicDEVS):
             return 0
         elif self.state.count == 1:
             return 10
+        elif self.state.count == 2:
+            return 10
         else:
             return INFINITY
 
@@ -46,6 +48,8 @@ class SimpleGenerator(AtomicDEVS):
             return {self.out_item: CrudeOilTanker(uid=0, creation_time=0)}
         elif self.state.count == 1:
             return {self.out_item: BulkCarrier(uid=1, creation_time=10)}
+        elif self.state.count == 2:
+            return {self.out_item: BulkCarrier(uid=2, creation_time=20)}
         else:
             assert False
 
@@ -54,7 +58,7 @@ class CoupledLock(CoupledDEVS):
     def __init__(self, name):
         super(CoupledLock, self).__init__(name)
 
-        self.lock = self.addSubModel(Lock('A', 1, 4, 1, 25000))
+        self.lock = self.addSubModel(Lock('A', 1, 4, 1, 20000))
         self.simple_generator = self.addSubModel(SimpleGenerator('Generator'))
         self.simple_collector = self.addSubModel(VesselCollector('Collector'))
 
@@ -66,17 +70,13 @@ def test():
     system = CoupledLock(name="system")
     sim = Simulator(system)
     sim.setTerminationTime(3610 + 0.01)  # Simulate just long enough
-    sim.setVerbose(None)
+    # sim.setVerbose(None)
     sim.setClassicDEVS()
     sim.simulate()
 
     vessels = system.simple_collector.state.vessels
 
-    print([(v.uid, v.creation_time, v.time_in_system) for v in vessels])
-
-    # assert [(v.uid, v.creation_time, v.time_in_system) for v in vessels] == [
-    #     (0, 0, 270),
-    # ]
+    assert [(v.uid, v.creation_time, v.time_in_system) for v in vessels] == [(0, 0, 270.0), (1, 10, 290.0), (2, 20, 730.0)]
 
 
 if __name__ == "__main__":
