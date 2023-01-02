@@ -12,7 +12,8 @@ class IntervalState(Enum):
     GATE_CLOSING = 1,
     WASHING = 2,
     GATE_OPENING = 3,
-    GATE_IS_OPEN = 4
+    GATE_IS_OPEN_DEPARTURE = 4,
+    GATE_IS_OPEN_ARRIVAL = 5
 
 
 class WaterLevel(Enum):
@@ -22,14 +23,12 @@ class WaterLevel(Enum):
 
 @dataclass
 class LockState:
-    remaining_lock_shift_interval: int
-
     current_surface_area: int
 
     # The remaining time until generation of a new output event
     # Initially, do not generate any output events
     # Instead, we first wait for an input event
-    remaining_time: float = INFINITY
+    remaining_time_current_state: float
 
     # The list that stores the vessels in this lock
     vessels_in_lock: list[Vessel] = field(default_factory=list)
@@ -38,9 +37,10 @@ class LockState:
 
     vessels_waiting_high: list[Vessel] = field(default_factory=list)
 
-    interval_state: IntervalState = IntervalState.GATE_IS_OPEN
+    # The current state of the Lock system (State machine state)
+    interval_state: IntervalState = IntervalState.GATE_IS_OPEN_ARRIVAL
 
-    # Water level (1 = HIGH, 0 = LOW)
+    # Water level
     current_water_level: WaterLevel = WaterLevel.HIGH
 
 
@@ -63,6 +63,9 @@ class Lock(AtomicDEVS):
         self.surface_area = surface_area
         self.time_between_departures = time_between_departures
 
+        # The absolute duration the gate is open (time of state GATE_IS_OPEN_DEPARTURE + GATE_IS_OPEN_ARRIVAL)
+        self.duration_open_gate = self.lock_shift_interval - (2*self.gate_duration + self.washing_duration)
+
         # Receive vessels on low and high level
         self.in_low = self.addInPort('in_vessel_low')
         self.in_high = self.addInPort('in_vessel_high')
@@ -72,13 +75,16 @@ class Lock(AtomicDEVS):
         self.out_high = self.addOutPort('out_vessel_high')
 
         # Initialize state
-        self.state = LockState(current_surface_area=self.surface_area, remaining_lock_shift_interval=self.lock_shift_interval)
+        self.state = LockState(current_surface_area=self.surface_area,
+                               remaining_time_current_state=self.duration_open_gate)
 
     def extTransition(self, inputs):
+
+        self.state.remaining_time_current_state -= self.elapsed
         if self.in_low in inputs:
             vessel = inputs[self.in_low]
             assert isinstance(vessel, Vessel)
-            if self.state.interval_state == IntervalState.GATE_IS_OPEN and self.state.current_water_level == WaterLevel.LOW \
+            if self.state.interval_state == IntervalState.GATE_IS_OPEN_ARRIVAL and self.state.current_water_level == WaterLevel.LOW \
                     and self.state.current_surface_area >= vessel.surface_area:
                 self.state.vessels_in_lock.append(vessel)
                 self.state.current_surface_area -= vessel.surface_area
@@ -87,7 +93,7 @@ class Lock(AtomicDEVS):
         elif self.in_high in inputs:
             vessel = inputs[self.in_high]
             assert isinstance(vessel, Vessel)
-            if self.state.interval_state == IntervalState.GATE_IS_OPEN and self.state.current_water_level == WaterLevel.HIGH \
+            if self.state.interval_state == IntervalState.GATE_IS_OPEN_ARRIVAL and self.state.current_water_level == WaterLevel.HIGH \
                     and self.state.current_surface_area >= vessel.surface_area:
                 self.state.vessels_in_lock.append(vessel)
                 self.state.current_surface_area -= vessel.surface_area
@@ -97,19 +103,16 @@ class Lock(AtomicDEVS):
 
     def timeAdvance(self):
         if self.state.interval_state == IntervalState.GATE_CLOSING:
-            return self.gate_duration
+            return self.state.remaining_time_current_state
         elif self.state.interval_state == IntervalState.WASHING:
-            return self.washing_duration
+            return self.state.remaining_time_current_state
         elif self.state.interval_state == IntervalState.GATE_OPENING:
-            return self.gate_duration
-        elif self.state.interval_state == IntervalState.GATE_IS_OPEN:
-            if len(self.state.vessels_in_lock) == 0:
-                return self.state.remaining_lock_shift_interval - (2*self.gate_duration + self.washing_duration)
-            else:
-                self.state.remaining_lock_shift_interval -= self.time_between_departures
-                # See assumption above
-                assert self.state.remaining_lock_shift_interval >= 0
-                return self.time_between_departures
+            return self.state.remaining_time_current_state
+        elif self.state.interval_state == IntervalState.GATE_IS_OPEN_DEPARTURE:
+            # See assumption above
+            return self.time_between_departures
+        elif self.state.interval_state == IntervalState.GATE_IS_OPEN_ARRIVAL:
+            return self.state.remaining_time_current_state
         else:
             assert False
 
@@ -117,8 +120,8 @@ class Lock(AtomicDEVS):
         if self.state.interval_state == IntervalState.GATE_CLOSING:
             # This reset can be done anywhere after outputting and inputting the vessels
             self.state.current_surface_area = self.surface_area
-            self.state.remaining_lock_shift_interval = self.lock_shift_interval
             self.state.interval_state = IntervalState.WASHING
+            self.state.remaining_time_current_state = self.washing_duration
             return self.state
         elif self.state.interval_state == IntervalState.WASHING:
             if self.state.current_water_level == WaterLevel.HIGH:
@@ -128,37 +131,44 @@ class Lock(AtomicDEVS):
             else:
                 assert False
             self.state.interval_state = IntervalState.GATE_OPENING
+            self.state.remaining_time_current_state = self.gate_duration
             return self.state
         elif self.state.interval_state == IntervalState.GATE_OPENING:
-            self.state.interval_state = IntervalState.GATE_IS_OPEN
+            if len(self.state.vessels_in_lock) != 0:
+                self.state.interval_state = IntervalState.GATE_IS_OPEN_DEPARTURE
+            else:
+                self.state.interval_state = IntervalState.GATE_IS_OPEN_ARRIVAL
+            self.state.remaining_time_current_state = self.duration_open_gate
             return self.state
-        elif self.state.interval_state == IntervalState.GATE_IS_OPEN:
-
+        elif self.state.interval_state == IntervalState.GATE_IS_OPEN_DEPARTURE:
+            self.state.vessels_in_lock.pop(0)
+            self.state.remaining_time_current_state -= self.time_between_departures
+            if len(self.state.vessels_in_lock) == 0:
+                self.state.interval_state = IntervalState.GATE_IS_OPEN_ARRIVAL
+            return self.state
+        elif self.state.interval_state == IntervalState.GATE_IS_OPEN_ARRIVAL:
             if self.state.current_water_level == WaterLevel.HIGH:
                 for idx, vessel in enumerate(self.state.vessels_waiting_high):
-                    if self.state.current_surface_area - vessel.surface_area >= 0:
+                    if self.state.current_surface_area >= vessel.surface_area:
                         self.state.vessels_in_lock.append(vessel)
                         self.state.current_surface_area -= vessel.surface_area
                         self.state.vessels_waiting_high.pop(idx)
 
             elif self.state.current_water_level == WaterLevel.LOW:
                 for idx, vessel in enumerate(self.state.vessels_waiting_low):
-                    if self.state.current_surface_area - vessel.surface_area >= 0:
+                    if self.state.current_surface_area >= vessel.surface_area:
                         self.state.vessels_in_lock.append(vessel)
                         self.state.current_surface_area -= vessel.surface_area
                         self.state.vessels_waiting_low.pop(idx)
 
-            if len(self.state.vessels_in_lock) != 0:
-                self.state.vessels_in_lock.pop(0)
-                self.state.interval_state = IntervalState.GATE_IS_OPEN
-                return self.state
             self.state.interval_state = IntervalState.GATE_CLOSING
+            self.state.remaining_time_current_state = self.gate_duration
             return self.state
         else:
             assert False
 
     def outputFnc(self):
-        if self.state.interval_state == IntervalState.GATE_IS_OPEN:
+        if self.state.interval_state == IntervalState.GATE_IS_OPEN_DEPARTURE:
             if len(self.state.vessels_in_lock) != 0:
                 vessel = self.state.vessels_in_lock[0]
                 if self.state.current_water_level == WaterLevel.LOW:

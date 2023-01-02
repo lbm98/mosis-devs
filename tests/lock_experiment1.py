@@ -63,11 +63,9 @@ def test():
 
     vessels = system.simple_collector.state.vessels
 
-    print([(v.uid, v.creation_time, v.time_in_system) for v in vessels])
-
-    # assert [(v.uid, v.creation_time, v.time_in_system) for v in vessels] == [
-    #     (0, 0, 4),
-    # ]
+    assert [(v.uid, v.creation_time, v.time_in_system) for v in vessels] == [
+        (0, 0, 270),
+    ]
 
 if __name__ == "__main__":
     test()
