@@ -14,7 +14,7 @@ class UniCanalState:
     # Instead, we first wait for an input event
     remaining_time: float = INFINITY
 
-    # The list that stores the vessels in this waterway
+    # The list that stores the vessels in this canal
     vessels: list[Vessel] = field(default_factory=list)
 
     # The list that stores the timers associated with the vessels in vessel_queue
