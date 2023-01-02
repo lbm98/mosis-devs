@@ -148,3 +148,4 @@ class Lock(AtomicDEVS):
                     return {self.out_low: vessel}
                 elif self.state.current_water_level == WaterLevel.HIGH:
                     return {self.out_high: vessel}
+        return {}
