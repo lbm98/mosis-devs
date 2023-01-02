@@ -78,7 +78,8 @@ class Lock(AtomicDEVS):
         if self.in_low in inputs:
             vessel = inputs[self.in_low]
             assert isinstance(vessel, Vessel)
-            if self.state.interval_state == IntervalState.GATE_IS_OPEN and not self.state.current_water_level and self.state.current_surface_area >= vessel.surface_area:
+            if self.state.interval_state == IntervalState.GATE_IS_OPEN and self.state.current_water_level == WaterLevel.LOW \
+                    and self.state.current_surface_area >= vessel.surface_area:
                 self.state.vessels_in_lock.append(vessel)
                 self.state.current_surface_area -= vessel.surface_area
             else:
@@ -86,7 +87,8 @@ class Lock(AtomicDEVS):
         elif self.in_high in inputs:
             vessel = inputs[self.in_high]
             assert isinstance(vessel, Vessel)
-            if self.state.interval_state == IntervalState.GATE_IS_OPEN and self.state.current_water_level and self.state.current_surface_area >= vessel.surface_area:
+            if self.state.interval_state == IntervalState.GATE_IS_OPEN and self.state.current_water_level == WaterLevel.HIGH \
+                    and self.state.current_surface_area >= vessel.surface_area:
                 self.state.vessels_in_lock.append(vessel)
                 self.state.current_surface_area -= vessel.surface_area
             else:
