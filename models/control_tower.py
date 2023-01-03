@@ -3,7 +3,7 @@ from pypdevs.infinity import INFINITY
 
 from dataclasses import dataclass, field
 
-from models.messages import PortEntryRequest, PortEntryPermission
+from models.messages import PortEntryRequest, PortEntryPermission, PortDepartureRequest
 
 
 @dataclass
@@ -40,10 +40,12 @@ class ControlTower(AtomicDEVS):
         # Sends PortEntryPermission's
         self.out_port_entry_permission = self.addOutPort("out_port_entry_permission")
 
+        self.in_port_depart_request = self.addInPort("in_port_depart_request")
+
         # Receives PortDepartureRequest's
-        self.in_port_departure_requests = {}
-        for port_name in self.control_tower_info:
-            self.in_port_departure_requests[port_name] = self.addInPort(port_name)
+        # self.in_port_departure_requests = {}
+        # for port_name in self.control_tower_info:
+        #     self.in_port_departure_requests[port_name] = self.addInPort(port_name)
 
         # Initialize the state
         self.state = ControlTowerState(docks_free_spots=docks_capacities)
@@ -81,9 +83,32 @@ class ControlTower(AtomicDEVS):
                 self.state.remaining_time = 0
                 self.state.stored_port_entry_permission = port_entry_permission
 
-        # IF WE RECEIVE A RELEASE
-        # CHECK IF ANY REQUESTS ARE IN THE QUEUE WAITING
-        # IF SO, SERVE THE FIRST-COME REQUEST
+        elif self.in_port_depart_request in inputs:
+            # IF WE RECEIVE A RELEASE
+            # CHECK IF ANY REQUESTS ARE IN THE QUEUE WAITING
+            # IF SO, SERVE THE FIRST-COME REQUEST
+
+            port_depart_request = inputs[self.in_port_depart_request]
+            assert isinstance(port_depart_request, PortDepartureRequest)
+
+            # Check the validity of the message
+            # That is, it contains a valid dock string
+            assert port_depart_request.dock in self.state.docks_free_spots
+
+            # Update the capacity of the dock
+            self.state.docks_free_spots[port_depart_request.dock] += 1
+
+            # If any request are pending, serve the first-come request
+            # We for sure know we have a free spot (since we just released it)
+            if len(self.state.port_entry_requests) != 0:
+                port_entry_request = self.state.port_entry_requests.pop(0)
+                port_entry_permission = PortEntryPermission(
+                    vessel_uid=port_entry_request.vessel_uid,
+                    avl_dock=port_depart_request.dock
+                )
+                # Schedule to send a PortEntryPermission to out_port_entry_permission IMMEDIATELY
+                self.state.remaining_time = 0
+                self.state.stored_port_entry_permission = port_entry_permission
 
         return self.state
 

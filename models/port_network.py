@@ -252,13 +252,13 @@ class PortNetwork(CoupledDEVS):
         self.connectPorts(self.control_tower.out_port_entry_permission, self.anchor_point.in_port_entry_permission)
 
         # connect docks and control tower
-        self.connectPorts(self.dock_1.out_port_departure_request, self.control_tower.in_port_departure_requests['1'])
-        self.connectPorts(self.dock_2.out_port_departure_request, self.control_tower.in_port_departure_requests['2'])
-        self.connectPorts(self.dock_3.out_port_departure_request, self.control_tower.in_port_departure_requests['3'])
-        self.connectPorts(self.dock_4.out_port_departure_request, self.control_tower.in_port_departure_requests['4'])
-        self.connectPorts(self.dock_5.out_port_departure_request, self.control_tower.in_port_departure_requests['5'])
-        self.connectPorts(self.dock_6.out_port_departure_request, self.control_tower.in_port_departure_requests['6'])
-        self.connectPorts(self.dock_7.out_port_departure_request, self.control_tower.in_port_departure_requests['7'])
-        self.connectPorts(self.dock_8.out_port_departure_request, self.control_tower.in_port_departure_requests['8'])
+        self.connectPorts(self.dock_1.out_port_departure_request, self.control_tower.in_port_departure_request)
+        self.connectPorts(self.dock_2.out_port_departure_request, self.control_tower.in_port_departure_request)
+        self.connectPorts(self.dock_3.out_port_departure_request, self.control_tower.in_port_departure_request)
+        self.connectPorts(self.dock_4.out_port_departure_request, self.control_tower.in_port_departure_request)
+        self.connectPorts(self.dock_5.out_port_departure_request, self.control_tower.in_port_departure_request)
+        self.connectPorts(self.dock_6.out_port_departure_request, self.control_tower.in_port_departure_request)
+        self.connectPorts(self.dock_7.out_port_departure_request, self.control_tower.in_port_departure_request)
+        self.connectPorts(self.dock_8.out_port_departure_request, self.control_tower.in_port_departure_request)
 
 
