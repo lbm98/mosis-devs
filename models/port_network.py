@@ -1,16 +1,15 @@
 from pypdevs.DEVS import CoupledDEVS
 
-from generator import Generator
-from anchor_point import AnchorPoint
-from sea import Sea
-from dock import Dock
-from lock import Lock
-from uni_canal import UniCanal
-from canal import Canal
-from waterway import Waterway
-from uni_waterway import UniWaterway
-from confluence import Confluence
-from control_tower import ControlTower
+from models.generator import Generator
+from models.anchor_point import AnchorPoint
+from models.sea import Sea
+from models.dock import Dock
+from models.lock import Lock
+from models.canal import Canal
+from models.waterway import Waterway
+from models.uni_waterway import UniWaterway
+from models.confluence import Confluence
+from models.control_tower import ControlTower
 
 
 class PortNetwork(CoupledDEVS):
@@ -252,13 +251,13 @@ class PortNetwork(CoupledDEVS):
         self.connectPorts(self.control_tower.out_port_entry_permission, self.anchor_point.in_port_entry_permission)
 
         # connect docks and control tower
-        self.connectPorts(self.dock_1.out_port_departure_request, self.control_tower.in_port_departure_request)
-        self.connectPorts(self.dock_2.out_port_departure_request, self.control_tower.in_port_departure_request)
-        self.connectPorts(self.dock_3.out_port_departure_request, self.control_tower.in_port_departure_request)
-        self.connectPorts(self.dock_4.out_port_departure_request, self.control_tower.in_port_departure_request)
-        self.connectPorts(self.dock_5.out_port_departure_request, self.control_tower.in_port_departure_request)
-        self.connectPorts(self.dock_6.out_port_departure_request, self.control_tower.in_port_departure_request)
-        self.connectPorts(self.dock_7.out_port_departure_request, self.control_tower.in_port_departure_request)
-        self.connectPorts(self.dock_8.out_port_departure_request, self.control_tower.in_port_departure_request)
+        self.connectPorts(self.dock_1.out_port_departure_request, self.control_tower.in_port_depart_request)
+        self.connectPorts(self.dock_2.out_port_departure_request, self.control_tower.in_port_depart_request)
+        self.connectPorts(self.dock_3.out_port_departure_request, self.control_tower.in_port_depart_request)
+        self.connectPorts(self.dock_4.out_port_departure_request, self.control_tower.in_port_depart_request)
+        self.connectPorts(self.dock_5.out_port_departure_request, self.control_tower.in_port_depart_request)
+        self.connectPorts(self.dock_6.out_port_departure_request, self.control_tower.in_port_depart_request)
+        self.connectPorts(self.dock_7.out_port_departure_request, self.control_tower.in_port_depart_request)
+        self.connectPorts(self.dock_8.out_port_departure_request, self.control_tower.in_port_depart_request)
 
 
