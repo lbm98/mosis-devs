@@ -21,7 +21,7 @@ class PortNetwork(CoupledDEVS):
 
         # CREATE ALL SUBMODELS
         # The vessel generator
-        self.generator = self.addSubModel(Generator('Generator', 10))
+        self.generator = self.addSubModel(Generator('Generator', 100))
 
         # The anchor point K
         self.anchor_point = self.addSubModel(AnchorPoint('K'))

@@ -95,7 +95,7 @@ class Dock(AtomicDEVS):
         # route this vessel to the Sea (by setting destination_dock) and
         # send a PortDepartureRequest
         vessel = self.state.vessels[self.state.index_for_next_vessel]
-        vessel.destination_dock = "S"
+        vessel.destination_dock = "9"
         return {
             self.out_vessel: vessel,
             self.out_port_departure_request: PortDepartureRequest(dock=self.name)
