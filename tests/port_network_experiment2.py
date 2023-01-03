@@ -25,7 +25,7 @@ class PortNetworkExperiment2(CoupledDEVS):
 
         # CREATE ALL SUBMODELS
         # The vessel generator
-        amount_to_generate = 0
+        amount_to_generate = 100
         self.generator = self.addSubModel(Generator('Generator', amount_to_generate))
 
         # The anchor point K
@@ -42,6 +42,7 @@ class PortNetworkExperiment2(CoupledDEVS):
                 # Important addition
                 creation_time=0
             )
+            hundred_vessels.append(vessel)
 
         # The Docks 1-8
         self.dock_1 = self.addSubModel(Dock('1', hundred_vessels[0:13]))
@@ -288,10 +289,11 @@ def test1():
 
     vessels = system.sea_collector.state.vessels
     stats = [vessel.time_in_system for vessel in vessels]
-    # print([vessel.time_in_system for vessel in vessels])
+    print([vessel.time_in_system for vessel in vessels])
     print(len(vessels))
-    # plt.plot(stats)
-    # plt.show()
+
+    plt.plot(stats)
+    plt.show()
 
 
 if __name__ == "__main__":

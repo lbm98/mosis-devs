@@ -71,6 +71,7 @@ class Dock(AtomicDEVS):
                 # Enqueue the vessel and its timer
                 self.state.vessels.append(vessel)
                 self.state.timers.append(timer)
+            self.generate_at_smallest_timer()
 
     def extTransition(self, inputs):
         # Apply the pattern: Ignore an Event (see MOSIS)
