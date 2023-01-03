@@ -18,7 +18,8 @@ def test1():
 
     vessels = system.sea_collector.state.vessels
     stats = [vessel.time_in_system for vessel in vessels]
-
+    print([vessel.time_in_system for vessel in vessels])
+    print(vessels)
     plt.plot(stats)
     plt.show()
 

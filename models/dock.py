@@ -36,10 +36,12 @@ class Dock(AtomicDEVS):
     2. There are no checks on the capacity of the docks
     This is because the ControlTower ensures proper blocking of vessels if the capacity is reached
     """
-    def __init__(self, name: str):
+    def __init__(self, name: str, vessels: list=None):
         AtomicDEVS.__init__(self, name)
 
         # Note this name has a special purpose (see ControlTower and PortDepartureRequest)
+        if vessels is None:
+            vessels = []
         self.name = name
 
         # Receives Vessel's
@@ -53,6 +55,22 @@ class Dock(AtomicDEVS):
 
         # Initialize the state
         self.state = DockState()
+
+        if vessels:
+            for vessel in vessels:
+                assert isinstance(vessel, Vessel)
+                # Get the timer
+                # Convert to correct unit = seconds
+                mu = 36 * SECONDS_PER_HOUR
+                sigma = 12 * SECONDS_PER_HOUR
+                # Sample from normal distribution
+                timer = np.random.normal(mu, sigma)
+                # Apply a lower bound of 6 hours
+                timer = max(timer, 6 * SECONDS_PER_HOUR)
+
+                # Enqueue the vessel and its timer
+                self.state.vessels.append(vessel)
+                self.state.timers.append(timer)
 
     def extTransition(self, inputs):
         # Apply the pattern: Ignore an Event (see MOSIS)
