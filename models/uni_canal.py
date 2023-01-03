@@ -21,6 +21,8 @@ class UniCanalState:
     # The association is by index
     timers: list[float] = field(default_factory=list)
 
+    real_velocities: list[float] = field(default_factory=list)
+
     # Note that there is no need for index_for_next_vessel as in UniWaterwayState
     # In this case, the next-index is always 0
 
@@ -73,19 +75,19 @@ class UniCanal(AtomicDEVS):
                 distance_in_km=self.distance_in_km,
                 velocity_in_knot=vessel.avg_velocity
             )
+            self.state.real_velocities.append(vessel.avg_velocity)
         else:
             # The vessel is NOT alone in its directions
 
-            # Get the vessel that will be in front of this vessel
-            vessel_in_front = self.state.vessels[-1]
-
-            # Get the minimum of the two velocities
-            velocity = min(vessel.avg_velocity, vessel_in_front.avg_velocity)
+            # Get the lowest velocity of the entire canal
+            lowest_v = min(self.state.real_velocities)
+            lowest_v = min(vessel.avg_velocity, lowest_v)
+            self.state.real_velocities.append(lowest_v)
 
             # Compute the timer with this velocity
             timer = get_time_in_seconds(
                 distance_in_km=self.distance_in_km,
-                velocity_in_knot=velocity
+                velocity_in_knot=lowest_v
             )
         return timer
 
@@ -103,6 +105,7 @@ class UniCanal(AtomicDEVS):
         # This is ALWAYS the vessel at the head of the queue
         self.state.vessels.pop(0)
         self.state.timers.pop(0)
+        self.state.real_velocities.pop(0)
 
         # If there are no more vessels in this waterway,
         # wait INDEFINITELY for the next input event
