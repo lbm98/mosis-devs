@@ -89,7 +89,7 @@ def test():
     assert len(vessels) == 45
     assert len(requests) == 45
 
-    assert vessels[0].destination_dock == 'S'
+    assert vessels[0].destination_dock == '9'
     assert requests[0].dock == 'dock'
 
 
