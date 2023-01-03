@@ -57,7 +57,7 @@ def test():
     system = CoupledLock(name="system")
     sim = Simulator(system)
     sim.setTerminationTime(3610 + 0.01)  # Simulate just long enough
-    sim.setVerbose(None)
+    # sim.setVerbose(None)
     sim.setClassicDEVS()
     sim.simulate()
 
