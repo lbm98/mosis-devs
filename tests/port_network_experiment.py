@@ -1,6 +1,7 @@
 from pypdevs.simulator import Simulator
 from models.port_network import PortNetwork
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -12,12 +13,14 @@ def test1():
     sim.setClassicDEVS()
 
     # Make the random numbers reproducible
-    np.random.seed(0)
+    np.random.seed(2)
     sim.simulate()
 
     vessels = system.sea_collector.state.vessels
+    stats = [vessel.time_in_system for vessel in vessels]
 
-    print(len(vessels))
+    plt.plot(stats)
+    plt.show()
 
 
 if __name__ == "__main__":
