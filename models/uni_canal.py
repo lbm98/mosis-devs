@@ -90,6 +90,8 @@ class UniCanal(AtomicDEVS):
         return timer
 
     def timeAdvance(self):
+        if self.state.remaining_time < 0:
+            pass
         return self.state.remaining_time
 
     def outputFnc(self):
