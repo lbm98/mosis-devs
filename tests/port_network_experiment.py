@@ -15,7 +15,5 @@ def test1():
     np.random.seed(0)
     sim.simulate()
 
-
-
 if __name__ == "__main__":
     test1()
