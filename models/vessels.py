@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -20,6 +20,7 @@ class Vessel:
     surface_area: int  # in square metre
     avg_velocity: float  # in knots
     max_velocity: float  # in knots
+    waiting_time_in_anchor_point: float | None
 
 
 @dataclass
@@ -30,6 +31,7 @@ class CrudeOilTanker(Vessel):
     surface_area: int = 11007
     avg_velocity: float = 10.7
     max_velocity: float = 15.4
+    waiting_time_in_anchor_point: float | None = None
 
 
 @dataclass
@@ -40,6 +42,7 @@ class BulkCarrier(Vessel):
     surface_area: int = 5399
     avg_velocity: float = 12
     max_velocity: float = 15.6
+    waiting_time_in_anchor_point: float | None = None
 
 
 @dataclass
@@ -50,6 +53,7 @@ class TugBoat(Vessel):
     surface_area: int = 348
     avg_velocity: float = 7.8
     max_velocity: float = 10.6
+    waiting_time_in_anchor_point: float | None = None
 
 
 @dataclass
@@ -60,6 +64,7 @@ class SmallCargoFreighter(Vessel):
     surface_area: int = 1265
     avg_velocity: float = 6.4
     max_velocity: float = 9.8
+    waiting_time_in_anchor_point: float | None = None
 
 
 ALL_VESSELS = [

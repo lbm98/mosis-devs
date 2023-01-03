@@ -24,6 +24,8 @@ class AnchorPointState:
     stored_port_entry_request: PortEntryRequest | None = None
     stored_vessel: Vessel | None = None
 
+    current_time: float = 0.0
+
 
 class AnchorPoint(AtomicDEVS):
     def __init__(self, name):
@@ -41,14 +43,19 @@ class AnchorPoint(AtomicDEVS):
         self.state = AnchorPointState()
 
     def intTransition(self):
+        self.state.current_time += self.timeAdvance()
         # After responding to an input, wait INDEFINITELY for a new input
         self.state.remaining_time = INFINITY
         return self.state
 
     def extTransition(self, inputs):
+        self.state.current_time += self.elapsed
         if self.in_vessel in inputs:
             vessel = inputs[self.in_vessel]
             assert isinstance(vessel, Vessel)
+
+            # Not the correct value, but used later
+            vessel.waiting_time_in_anchor_point = self.state.current_time
 
             # Enqueue the vessel
             self.state.vessels.append(inputs[self.in_vessel])
@@ -88,6 +95,7 @@ class AnchorPoint(AtomicDEVS):
 
         elif self.state.what_to_do == "send_vessel":
             assert self.state.stored_vessel is not None
+            self.state.stored_vessel.waiting_time_in_anchor_point = self.state.current_time - self.state.stored_vessel.waiting_time_in_anchor_point
             to_return = {self.out_vessel: self.state.stored_vessel}
             self.state.stored_vessel = None
         else:

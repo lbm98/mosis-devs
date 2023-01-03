@@ -35,6 +35,11 @@ class LockState:
 
     vessels_waiting_high: list[Vessel] = field(default_factory=list)
 
+    sum_remaining_surface_area: float = 0.0
+    number_of_washings: int = 0
+    number_lock_state_changes_with_no_vessels: int = 0
+    idle_time: int = 0
+
 
 class Lock(AtomicDEVS):
     def __init__(self, name: str, washing_duration: int, lock_shift_interval: int, gate_duration: int,
@@ -114,7 +119,13 @@ class Lock(AtomicDEVS):
 
         elif self.state.interval_state == IntervalState.WASHING:
             self.swap_water_levels()
+            self.state.sum_remaining_surface_area += self.surface_area - self.state.current_surface_area
+            self.state.number_of_washings += 1
+            if len(self.state.vessels_in_lock) == 0:
+                self.state.number_lock_state_changes_with_no_vessels += 1
+                self.state.idle_time += self.lock_shift_interval
             self.state.interval_state = IntervalState.GATE_OPENING
+
 
         elif self.state.interval_state == IntervalState.GATE_OPENING:
             self.state.interval_state = IntervalState.GATE_IS_OPEN
