@@ -40,6 +40,11 @@ class ControlTower(AtomicDEVS):
         # Sends PortEntryPermission's
         self.out_port_entry_permission = self.addOutPort("out_port_entry_permission")
 
+        # Receives PortDepartureRequest's
+        self.in_port_departure_requests = {}
+        for port_name in self.control_tower_info:
+            self.in_port_departure_requests[port_name] = self.addInPort(port_name)
+
         # Initialize the state
         self.state = ControlTowerState(docks_free_spots=docks_capacities)
 
